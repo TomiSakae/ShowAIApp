@@ -7,6 +7,8 @@ import 'screens/login_page.dart';
 import 'widgets/website_card.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'screens/account_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,13 +26,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ShowAI',
       theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          brightness: Brightness.dark,
-        ),
+        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
       ),
-      home: const MainScreen(),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Nếu đã đăng nhập, chuyển đến MainScreen
+          if (snapshot.hasData) {
+            return const MainScreen();
+          }
+
+          // Nếu chưa đăng nhập, cũng chuyển đến MainScreen
+          return const MainScreen();
+        },
+      ),
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/account': (context) => const AccountPage(),
+      },
     );
   }
 }
@@ -44,6 +62,18 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 1;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Kiểm tra trạng thái đăng nhập
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {
+        _isLoggedIn = user != null;
+      });
+    });
+  }
 
   final List<Widget> _screens = [
     const SearchPage(),
@@ -53,6 +83,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Cập nhật screen cuối cùng dựa vào trạng thái đăng nhập
+    _screens[2] = _isLoggedIn ? const AccountPage() : const LoginPage();
+
     return Scaffold(
       body: _screens[_selectedIndex],
       bottomNavigationBar: NavigationBar(
@@ -62,18 +95,18 @@ class _MainScreenState extends State<MainScreen> {
             _selectedIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.search),
             label: 'Tìm kiếm',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.home),
             label: 'Trang chủ',
           ),
           NavigationDestination(
             icon: Icon(Icons.person),
-            label: 'Đăng nhập',
+            label: _isLoggedIn ? 'Tài khoản' : 'Đăng nhập',
           ),
         ],
       ),

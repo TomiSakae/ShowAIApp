@@ -52,10 +52,6 @@ class _LoginPageState extends State<LoginPage> {
             'displayName': 'User${userCredential.user!.uid}',
           });
         }
-
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, '/');
-        }
       } on FirebaseAuthException catch (e) {
         setState(() {
           _error = _getErrorMessage(e.code);
@@ -101,10 +97,6 @@ class _LoginPageState extends State<LoginPage> {
           'username': userCredential.user!.displayName,
           'displayName': userCredential.user!.displayName,
         });
-      }
-
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/');
       }
     } catch (e) {
       setState(() {
@@ -176,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Confirm Password field - chỉ hiện khi đăng ký
+                  // Confirm Password field - ch��� hiện khi đăng ký
                   if (!_isLogin) ...[
                     TextFormField(
                       controller: _confirmPasswordController,

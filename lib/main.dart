@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show utf8, json;
 import 'models/website.dart';
-import 'screens/website_detail_screen.dart';
+import 'screens/search_page.dart';
+import 'screens/login_page.dart';
+import 'widgets/website_card.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +24,53 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
       ),
-      home: const HomePage(),
+      home: const MainScreen(),
+    );
+  }
+}
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 1;
+
+  final List<Widget> _screens = [
+    const SearchPage(),
+    const HomePage(),
+    const LoginPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.search),
+            label: 'Tìm kiếm',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.home),
+            label: 'Trang chủ',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person),
+            label: 'Đăng nhập',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -84,167 +132,6 @@ class _HomePageState extends State<HomePage> {
                 return WebsiteCard(website: websites[index]);
               },
             ),
-    );
-  }
-}
-
-class WebsiteCard extends StatelessWidget {
-  final Website website;
-
-  const WebsiteCard({super.key, required this.website});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WebsiteDetailScreen(website: website),
-            ),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (website.image != null)
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Image.network(
-                  website.image!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const ColoredBox(color: Colors.grey),
-                ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      website.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.blue[300],
-                            fontWeight: FontWeight.bold,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Expanded(
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 80),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final textSpan = TextSpan(
-                              text: website.description.first,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    height: 1.3,
-                                  ),
-                            );
-                            final textPainter = TextPainter(
-                              text: textSpan,
-                              textDirection: TextDirection.ltr,
-                              maxLines: 4,
-                            );
-                            textPainter.layout(maxWidth: constraints.maxWidth);
-
-                            final isTextOverflowed =
-                                textPainter.didExceedMaxLines;
-
-                            return Text(
-                              website.description.first +
-                                  (isTextOverflowed ? '...' : ''),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    height: 1.3,
-                                  ),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      height: 36,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: website.tags.map((tag) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Chip(
-                              label: Text(
-                                tag,
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (website.view != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.remove_red_eye,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${website.view}',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        if (website.heart != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.favorite,
-                                  size: 16, color: Colors.red),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${website.heart}',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        if (website.evaluation != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.star,
-                                  size: 16, color: Colors.amber),
-                              const SizedBox(width: 4),
-                              Text(
-                                website.evaluation!.toStringAsFixed(1),
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

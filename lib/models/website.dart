@@ -6,11 +6,8 @@ class Website {
   final String link;
   final List<String> keyFeatures;
   final String? image;
-  final String? displayName;
-  final DateTime? createdAt;
-  final int? heart;
-  final int? star;
   final int? view;
+  final int? heart;
   final double? evaluation;
 
   Website({
@@ -21,29 +18,22 @@ class Website {
     required this.link,
     required this.keyFeatures,
     this.image,
-    this.displayName,
-    this.createdAt,
-    this.heart,
-    this.star,
     this.view,
+    this.heart,
     this.evaluation,
   });
 
   factory Website.fromJson(Map<String, dynamic> json) {
     return Website(
-      id: json['id'],
+      id: json['_id'] ?? json['id'],
       name: json['name'],
       description: List<String>.from(json['description']),
       tags: List<String>.from(json['tags']),
       link: json['link'],
       keyFeatures: List<String>.from(json['keyFeatures']),
       image: json['image'],
-      displayName: json['displayName'],
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      heart: json['heart'],
-      star: json['star'],
       view: json['view'],
+      heart: json['heart'],
       evaluation: json['evaluation']?.toDouble(),
     );
   }

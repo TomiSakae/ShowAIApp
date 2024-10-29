@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show utf8, json;
-import 'package:url_launcher/url_launcher.dart';
 import 'models/website.dart';
+import 'screens/website_detail_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -98,13 +98,13 @@ class WebsiteCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () async {
-          if (await canLaunchUrl(Uri.parse(website.link))) {
-            await launchUrl(
-              Uri.parse(website.link),
-              mode: LaunchMode.externalApplication,
-            );
-          }
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WebsiteDetailScreen(website: website),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,14 +138,40 @@ class WebsiteCard extends StatelessWidget {
                     Expanded(
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 80),
-                        child: Text(
-                          website.description.first,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final textSpan = TextSpan(
+                              text: website.description.first,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     height: 1.3,
                                   ),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
+                            );
+                            final textPainter = TextPainter(
+                              text: textSpan,
+                              textDirection: TextDirection.ltr,
+                              maxLines: 4,
+                            );
+                            textPainter.layout(maxWidth: constraints.maxWidth);
+
+                            final isTextOverflowed =
+                                textPainter.didExceedMaxLines;
+
+                            return Text(
+                              website.description.first +
+                                  (isTextOverflowed ? '...' : ''),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    height: 1.3,
+                                  ),
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -194,6 +220,18 @@ class WebsiteCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 '${website.heart}',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        if (website.evaluation != null)
+                          Row(
+                            children: [
+                              const Icon(Icons.star,
+                                  size: 16, color: Colors.amber),
+                              const SizedBox(width: 4),
+                              Text(
+                                website.evaluation!.toStringAsFixed(1),
                                 style: const TextStyle(color: Colors.grey),
                               ),
                             ],

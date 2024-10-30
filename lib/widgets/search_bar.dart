@@ -61,13 +61,24 @@ class _CustomSearchBarState extends State<CustomSearchBar>
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF2A2F4E),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.grey[900]!,
+                Colors.grey[850]!,
+              ],
+            ),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.grey[800]!,
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
               ),
             ],
           ),
@@ -88,12 +99,12 @@ class _CustomSearchBarState extends State<CustomSearchBar>
                         decoration: InputDecoration(
                           hintText: 'Tìm kiếm công cụ AI...',
                           hintStyle: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.grey[400],
                             fontSize: 16,
                           ),
                           prefixIcon: Icon(
                             Icons.search,
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.grey[400],
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(

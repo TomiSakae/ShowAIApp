@@ -77,7 +77,31 @@ class _SearchPageState extends State<SearchPage> {
       body: Column(
         children: [
           Container(
-            color: const Color(0xFF2A3284),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.grey[900]!,
+                  Colors.grey[850]!,
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+              border: Border.all(
+                color: Colors.grey[800]!,
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [

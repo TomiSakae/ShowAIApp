@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/website.dart';
 import '../screens/website_detail_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class WebsiteCard extends StatelessWidget {
+class WebsiteCard extends StatefulWidget {
   final Website website;
   final Function(String)? onTagClick;
 
@@ -13,26 +15,50 @@ class WebsiteCard extends StatelessWidget {
   });
 
   @override
+  State<WebsiteCard> createState() => _WebsiteCardState();
+}
+
+class _WebsiteCardState extends State<WebsiteCard> {
+  @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
+          // Tăng lượt xem ngay lập tức
+          setState(() {
+            widget.website.view = (widget.website.view ?? 0) + 1;
+          });
+
+          // Gọi API để cập nhật lượt xem ở backend
+          try {
+            await http.post(
+              Uri.parse('https://showai.io.vn/api/incrementView'),
+              headers: {'Content-Type': 'application/json'},
+              body: json.encode({'id': widget.website.id}),
+            );
+          } catch (e) {
+            print('Lỗi khi tăng lượt xem: $e');
+          }
+
+          // Chuyển hướng đến trang chi tiết
+          if (!context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => WebsiteDetailScreen(website: website),
+              builder: (context) =>
+                  WebsiteDetailScreen(website: widget.website),
             ),
           );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (website.image != null)
+            if (widget.website.image != null)
               AspectRatio(
                 aspectRatio: 16 / 9,
                 child: Image.network(
-                  website.image!,
+                  widget.website.image!,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const ColoredBox(color: Colors.grey),
@@ -45,7 +71,7 @@ class WebsiteCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      website.name,
+                      widget.website.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.blue[300],
                             fontWeight: FontWeight.bold,
@@ -57,36 +83,14 @@ class WebsiteCard extends StatelessWidget {
                     Expanded(
                       child: Container(
                         constraints: const BoxConstraints(minHeight: 80),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final textSpan = TextSpan(
-                              text: website.description.first,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(height: 1.3),
-                            );
-                            final textPainter = TextPainter(
-                              text: textSpan,
-                              textDirection: TextDirection.ltr,
-                              maxLines: 4,
-                            );
-                            textPainter.layout(maxWidth: constraints.maxWidth);
-
-                            final isTextOverflowed =
-                                textPainter.didExceedMaxLines;
-
-                            return Text(
-                              website.description.first +
-                                  (isTextOverflowed ? '...' : ''),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(height: 1.3),
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                            );
-                          },
+                        child: Text(
+                          widget.website.description.first,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(height: 1.3),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -95,7 +99,7 @@ class WebsiteCard extends StatelessWidget {
                       height: 36,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: website.tags.map((tag) {
+                        children: widget.website.tags.map((tag) {
                           return Padding(
                             padding: const EdgeInsets.only(right: 4),
                             child: Chip(
@@ -106,8 +110,8 @@ class WebsiteCard extends StatelessWidget {
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               visualDensity: VisualDensity.compact,
-                              onDeleted: onTagClick != null
-                                  ? () => onTagClick!(tag)
+                              onDeleted: widget.onTagClick != null
+                                  ? () => widget.onTagClick!(tag)
                                   : null,
                             ),
                           );
@@ -118,39 +122,48 @@ class WebsiteCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (website.view != null)
+                        if (widget.website.view != null)
                           Row(
                             children: [
                               const Icon(Icons.remove_red_eye,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 4),
+                                  size: 14, color: Colors.grey),
+                              const SizedBox(width: 2),
                               Text(
-                                '${website.view}',
-                                style: const TextStyle(color: Colors.grey),
+                                '${widget.website.view}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
-                        if (website.heart != null)
+                        if (widget.website.heart != null)
                           Row(
                             children: [
                               const Icon(Icons.favorite,
-                                  size: 16, color: Colors.red),
-                              const SizedBox(width: 4),
+                                  size: 14, color: Colors.red),
+                              const SizedBox(width: 2),
                               Text(
-                                '${website.heart}',
-                                style: const TextStyle(color: Colors.grey),
+                                '${widget.website.heart}',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
-                        if (website.evaluation != null)
+                        if (widget.website.evaluation != null)
                           Row(
                             children: [
                               const Icon(Icons.star,
-                                  size: 16, color: Colors.amber),
-                              const SizedBox(width: 4),
+                                  size: 14, color: Colors.amber),
+                              const SizedBox(width: 2),
                               Text(
-                                website.evaluation!.toStringAsFixed(1),
-                                style: const TextStyle(color: Colors.grey),
+                                widget.website.evaluation!.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),

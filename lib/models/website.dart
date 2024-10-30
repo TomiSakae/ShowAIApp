@@ -5,10 +5,10 @@ class Website {
   final List<String> tags;
   final String link;
   final List<String> keyFeatures;
-  final String? image;
-  final int? view;
+  int? view;
   final int? heart;
   final double? evaluation;
+  final String? image;
 
   Website({
     required this.id,
@@ -17,15 +17,15 @@ class Website {
     required this.tags,
     required this.link,
     required this.keyFeatures,
-    this.image,
     this.view,
     this.heart,
     this.evaluation,
+    this.image,
   });
 
   factory Website.fromJson(Map<String, dynamic> json) {
     return Website(
-      id: json['_id'] ?? json['id'],
+      id: json['id'] ?? json['_id'],
       name: json['name'],
       description: List<String>.from(json['description']),
       tags: List<String>.from(json['tags']),

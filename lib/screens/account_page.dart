@@ -7,6 +7,9 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import '../models/website.dart';
 import '../widgets/website_card.dart';
+import 'change_password_screen.dart';
+import 'delete_account_screen.dart';
+import 'change_display_name_screen.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -22,12 +25,24 @@ class _AccountPageState extends State<AccountPage> {
   bool _isLoading = true;
   List<Website> _favoriteWebsites = [];
   bool _isLoadingFavorites = true;
+  bool _isGoogleUser = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _loadFavoriteWebsites();
+    _checkAuthProvider();
+  }
+
+  void _checkAuthProvider() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _isGoogleUser =
+            user.providerData.any((info) => info.providerId == 'google.com');
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -234,61 +249,85 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Widget _buildInfoTab() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Thông tin người dùng
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.person),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Text(
-                          _displayName ?? 'Người dùng',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          softWrap: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleSignOut,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Đăng xuất',
-                        style: TextStyle(
-                          fontSize: 16,
+    return ListView(
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.person),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        _displayName ?? 'Người dùng',
+                        style: const TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
+                        softWrap: true,
                       ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+
+        // Thêm tùy chọn đổi tên hiển thị
+        ListTile(
+          title: const Text('Đổi tên hiển thị'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () async {
+            final newName = await Navigator.push<String>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChangeDisplayNameScreen(
+                  currentDisplayName: _displayName,
+                ),
+              ),
+            );
+            if (newName != null) {
+              setState(() => _displayName = newName);
+            }
+          },
+        ),
+        const Divider(height: 1),
+
+        // Danh sách các tùy chọn
+        if (!_isGoogleUser)
+          ListTile(
+            title: const Text('Đổi mật khẩu'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen()),
+            ),
+          ),
+        const Divider(height: 1),
+        ListTile(
+          title: const Text('Xóa tài khoản'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const DeleteAccountScreen()),
+          ),
+        ),
+        const Divider(height: 1),
+        ListTile(
+          title: const Text('Đăng xuất'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: _handleSignOut,
+        ),
+      ],
     );
   }
 

@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../widgets/rating_widget.dart';
+import '../widgets/random_websites.dart';
 
 class WebsiteDetailScreen extends StatefulWidget {
   final Website website;
@@ -261,6 +263,19 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
+                  RatingWidget(
+                    websiteId: widget.website.id,
+                    initialRating: widget.website.evaluation ?? 0,
+                    onRatingUpdate: (newRating) {
+                      setState(() {
+                        widget.website.evaluation = newRating;
+                      });
+                    },
+                    onRatingStart: () {
+                      // Có thể thêm loading indicator nếu cần
+                    },
+                  ),
+                  const SizedBox(height: 24),
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
@@ -436,6 +451,8 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 30),
+                  const RandomWebsites(),
                 ],
               ),
             ),

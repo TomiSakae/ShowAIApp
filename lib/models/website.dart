@@ -7,7 +7,7 @@ class Website {
   final List<String> keyFeatures;
   int? view;
   final int? heart;
-  final double? evaluation;
+  double? evaluation;
   final String? image;
 
   Website({

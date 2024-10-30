@@ -1,35 +1,149 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/website.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class WebsiteDetailScreen extends StatelessWidget {
+class WebsiteDetailScreen extends StatefulWidget {
   final Website website;
 
   const WebsiteDetailScreen({super.key, required this.website});
+
+  @override
+  State<WebsiteDetailScreen> createState() => _WebsiteDetailScreenState();
+}
+
+class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
+  bool isHearted = false;
+  bool isLoading = false;
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  int heartCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    heartCount = widget.website.heart ?? 0;
+    _checkHeartStatus();
+  }
+
+  Future<void> _checkHeartStatus() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+          final heartedWebsites =
+              List<String>.from(doc.data()?['heartedWebsites'] ?? []);
+          setState(() {
+            isHearted = heartedWebsites.contains(widget.website.id);
+          });
+        }
+      } catch (e) {
+        print('Error checking heart status: $e');
+      }
+    }
+  }
+
+  Future<void> _handleHeartClick() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Vui lòng đăng nhập để thực hiện chức năng này')),
+      );
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      final userDoc = _firestore.collection('users').doc(user.uid);
+
+      final newHeartStatus = !isHearted;
+      setState(() {
+        isHearted = newHeartStatus;
+        heartCount += newHeartStatus ? 1 : -1;
+      });
+
+      await _firestore.runTransaction((transaction) async {
+        final userSnapshot = await transaction.get(userDoc);
+
+        if (!userSnapshot.exists) {
+          throw Exception('User document not found');
+        }
+
+        List<String> heartedWebsites =
+            List<String>.from(userSnapshot.data()?['heartedWebsites'] ?? []);
+
+        if (newHeartStatus) {
+          if (!heartedWebsites.contains(widget.website.id)) {
+            heartedWebsites.add(widget.website.id);
+          }
+        } else {
+          heartedWebsites.remove(widget.website.id);
+        }
+
+        transaction.update(userDoc, {
+          'heartedWebsites': heartedWebsites,
+        });
+      });
+
+      _updateHeartCount(newHeartStatus).catchError((error) {
+        print('Error updating API: $error');
+      });
+    } catch (e) {
+      setState(() {
+        isHearted = !isHearted;
+        heartCount += isHearted ? 1 : -1;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _updateHeartCount(bool increment) async {
+    try {
+      await http.post(
+        Uri.parse('https://showai.io.vn/api/updateHeart'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'id': widget.website.id,
+          'increment': increment,
+        }),
+      );
+    } catch (e) {
+      print('Error updating heart count API: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar với hiệu ứng blur và thiết kế mới
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
             backgroundColor: Colors.transparent,
             flexibleSpace: FlexibleSpaceBar(
-              background: website.image != null
+              background: widget.website.image != null
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
                         Hero(
-                          tag: website.id,
+                          tag: widget.website.id,
                           child: Image.network(
-                            website.image!,
+                            widget.website.image!,
                             fit: BoxFit.cover,
                           ),
                         ),
-                        // Gradient overlay với màu đẹp hơn
                         Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -47,7 +161,7 @@ class WebsiteDetailScreen extends StatelessWidget {
                     )
                   : null,
               title: Text(
-                website.name,
+                widget.website.name,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
@@ -55,8 +169,6 @@ class WebsiteDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Nội dung với thiết kế mới
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
@@ -70,7 +182,6 @@ class WebsiteDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Stats Row với thiết kế mới
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
@@ -82,19 +193,22 @@ class WebsiteDetailScreen extends StatelessWidget {
                       children: [
                         _buildStatItem(
                           Icons.remove_red_eye,
-                          '${website.view ?? 0}',
+                          '${widget.website.view ?? 0}',
                           Colors.blue,
                           'Lượt xem',
                         ),
                         _buildStatItem(
                           Icons.favorite,
-                          '${website.heart ?? 0}',
-                          Colors.red,
+                          '$heartCount',
+                          isHearted ? Colors.red : Colors.grey,
                           'Yêu thích',
+                          onTap: _handleHeartClick,
+                          isLoading: isLoading,
                         ),
                         _buildStatItem(
                           Icons.star,
-                          website.evaluation?.toStringAsFixed(1) ?? '0.0',
+                          widget.website.evaluation?.toStringAsFixed(1) ??
+                              '0.0',
                           Colors.amber,
                           'Đánh giá',
                         ),
@@ -102,17 +216,32 @@ class WebsiteDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Nút truy cập
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        if (await canLaunchUrl(Uri.parse(website.link))) {
-                          await launchUrl(
-                            Uri.parse(website.link),
-                            mode: LaunchMode.externalApplication,
-                          );
+                        final url = Uri.parse(widget.website.link);
+                        try {
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Không thể mở link này')),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Có lỗi xảy ra khi mở link')),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -132,12 +261,10 @@ class WebsiteDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Tags với thiết kế mới
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: website.tags.map((tag) {
+                    children: widget.website.tags.map((tag) {
                       return Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -174,8 +301,6 @@ class WebsiteDetailScreen extends StatelessWidget {
                     }).toList(),
                   ),
                   const SizedBox(height: 30),
-
-                  // Mô tả với thiết kế dark theme
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -223,7 +348,7 @@ class WebsiteDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 15),
                         Text(
-                          website.description.first,
+                          widget.website.description.first,
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     height: 1.6,
@@ -235,9 +360,7 @@ class WebsiteDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // Tính năng chính với thiết kế dark theme
-                  if (website.keyFeatures.isNotEmpty) ...[
+                  if (widget.website.keyFeatures.isNotEmpty) ...[
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.grey[850],
@@ -277,7 +400,7 @@ class WebsiteDetailScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 15),
-                          ...website.keyFeatures.map((feature) {
+                          ...widget.website.keyFeatures.map((feature) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 12),
                               child: Row(
@@ -323,28 +446,45 @@ class WebsiteDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStatItem(
-      IconData icon, String value, Color color, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 28),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            color: color,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+    IconData icon,
+    String value,
+    Color color,
+    String label, {
+    VoidCallback? onTap,
+    bool isLoading = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          isLoading
+              ? const SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
+              : Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

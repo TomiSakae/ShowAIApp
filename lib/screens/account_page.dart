@@ -74,8 +74,10 @@ class _AccountPageState extends State<AccountPage> {
 
   Widget _buildInfoTab() {
     return ListView(
+      padding: const EdgeInsets.only(top: 8),
       children: [
         Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -102,59 +104,91 @@ class _AccountPageState extends State<AccountPage> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        ListTile(
-          title: const Text('Đổi tên hiển thị'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () async {
-            final newName = await Navigator.push<String>(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChangeDisplayNameScreen(
-                  currentDisplayName: _displayName,
+        const SizedBox(height: 8),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Đổi tên hiển thị'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () async {
+                  final newName = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChangeDisplayNameScreen(
+                        currentDisplayName: _displayName,
+                      ),
+                    ),
+                  );
+                  if (newName != null) {
+                    setState(() => _displayName = newName);
+                  }
+                },
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(Icons.favorite),
+                title: const Text('Yêu thích'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FavoritesScreen()),
                 ),
               ),
-            );
-            if (newName != null) {
-              setState(() => _displayName = newName);
-            }
-          },
-        ),
-        const Divider(height: 1),
-        ListTile(
-          title: const Text('Yêu thích'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+              if (!_isGoogleUser) ...[
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                ListTile(
+                  leading: const Icon(Icons.lock),
+                  title: const Text('Đổi mật khẩu'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChangePasswordScreen()),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
-        const Divider(height: 1),
-        if (!_isGoogleUser)
-          ListTile(
-            title: const Text('Đổi mật khẩu'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const ChangePasswordScreen()),
-            ),
+        const SizedBox(height: 8),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(12),
           ),
-        const Divider(height: 1),
-        ListTile(
-          title: const Text('Xóa tài khoản'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const DeleteAccountScreen()),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.red),
+                title: const Text(
+                  'Xóa tài khoản',
+                  style: TextStyle(color: Colors.red),
+                ),
+                trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const DeleteAccountScreen()),
+                ),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Đăng xuất'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _handleSignOut,
+              ),
+            ],
           ),
-        ),
-        const Divider(height: 1),
-        ListTile(
-          title: const Text('Đăng xuất'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: _handleSignOut,
         ),
       ],
     );

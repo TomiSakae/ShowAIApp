@@ -119,6 +119,7 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                           ),
                           child: WebsiteCard(
                             website: randomWebsites[index],
+                            showDescription: true,
                           ),
                         );
                       },

@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../widgets/rating_widget.dart';
 import '../widgets/random_websites.dart';
+import '../widgets/comments_widget.dart';
+import '../models/comment.dart';
 
 class WebsiteDetailScreen extends StatefulWidget {
   final Website website;
@@ -23,12 +25,15 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
   int heartCount = 0;
+  List<Comment> comments = [];
+  bool isLoadingComments = false;
 
   @override
   void initState() {
     super.initState();
     heartCount = widget.website.heart ?? 0;
     _checkHeartStatus();
+    _fetchInitialComments();
   }
 
   Future<void> _checkHeartStatus() async {
@@ -122,6 +127,39 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
       );
     } catch (e) {
       print('Error updating heart count API: $e');
+    }
+  }
+
+  Future<void> _fetchInitialComments() async {
+    setState(() => isLoadingComments = true);
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://showai.io.vn/api/comments?websiteId=${widget.website.id}'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        print('Response data: ${response.body}');
+
+        if (data['success'] == true && data['comments'] != null) {
+          setState(() {
+            comments = (data['comments'] as List)
+                .map(
+                    (item) => Comment.fromJson(Map<String, dynamic>.from(item)))
+                .toList();
+          });
+          print('Parsed comments: $comments');
+        }
+      } else {
+        print('Error status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching comments: $e');
+    } finally {
+      setState(() => isLoadingComments = false);
     }
   }
 
@@ -452,6 +490,88 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.grey[900]!,
+                          Colors.grey[850]!,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey[800]!,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.comment_outlined,
+                              color: Colors.blue[300],
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Bình luận',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[300],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${comments.length}',
+                                style: TextStyle(
+                                  color: Colors.blue[300],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        isLoadingComments
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              )
+                            : CommentsWidget(
+                                websiteId: widget.website.id,
+                                initialComments: comments,
+                                user: _auth.currentUser,
+                              ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   const RandomWebsites(),
                 ],

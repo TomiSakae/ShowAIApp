@@ -7,11 +7,13 @@ import 'dart:convert';
 class WebsiteCard extends StatefulWidget {
   final Website website;
   final Function(String)? onTagClick;
+  final bool showDescription;
 
   const WebsiteCard({
     super.key,
     required this.website,
     this.onTagClick,
+    this.showDescription = false,
   });
 
   @override
@@ -80,20 +82,23 @@ class _WebsiteCardState extends State<WebsiteCard> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-                    Expanded(
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 80),
-                        child: Text(
-                          widget.website.description.first,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(height: 1.3),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
+                    if (widget.showDescription)
+                      Expanded(
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 80),
+                          child: Text(
+                            widget.website.description.isNotEmpty
+                                ? widget.website.description.first
+                                : '',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(height: 1.3),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
-                    ),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 36,

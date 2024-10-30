@@ -9,6 +9,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/account_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'widgets/persistent_search_bar.dart';
+import 'services/api_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,8 +63,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
   bool _isLoggedIn = false;
+  final _apiService = ApiService();
+
+  final List<Widget> _screens = [
+    const HomePage(),
+    const LoginPage(),
+  ];
 
   @override
   void initState() {
@@ -75,19 +83,29 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  final List<Widget> _screens = [
-    const SearchPage(),
-    const HomePage(),
-    const LoginPage(),
-  ];
+  void _navigateToSearch() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const SearchPage(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Cập nhật screen cuối cùng dựa vào trạng thái đăng nhập
-    _screens[2] = _isLoggedIn ? const AccountPage() : const LoginPage();
+    _screens[1] = _isLoggedIn ? const AccountPage() : const LoginPage();
 
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: Column(
+        children: [
+          PersistentSearchBar(
+            onTap: _navigateToSearch,
+          ),
+          Expanded(
+            child: _screens[_selectedIndex],
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
@@ -96,10 +114,6 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Tìm kiếm',
-          ),
           const NavigationDestination(
             icon: Icon(Icons.home),
             label: 'Trang chủ',
@@ -153,9 +167,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('ShowAI'),
-      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : GridView.builder(

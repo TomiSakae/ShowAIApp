@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/website.dart';
-import '../widgets/search_bar.dart';
 import '../widgets/website_card.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? initialSearchTerm;
+  final bool isTagSearch;
+
+  const SearchPage({
+    Key? key,
+    this.initialSearchTerm,
+    this.isTagSearch = false,
+  }) : super(key: key);
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -25,6 +31,9 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadInitialTags();
+    if (widget.initialSearchTerm != null) {
+      _performSearch(widget.initialSearchTerm!, isTag: widget.isTagSearch);
+    }
   }
 
   Future<void> _loadInitialTags() async {
@@ -68,66 +77,68 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
+  void _performSearch(String searchTerm, {bool isTag = false}) {
+    _handleSearch(searchTerm, isTag: isTag);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tìm kiếm'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: TextField(
+          controller: _searchController,
+          autofocus: true, // Tự động focus khi vào màn hình
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(
+            hintText: 'Tìm kiếm công cụ AI...',
+            hintStyle: TextStyle(color: Colors.grey),
+            border: InputBorder.none,
+          ),
+          onSubmitted: (value) => _performSearch(value),
+        ),
       ),
       body: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.grey[900]!,
-                  Colors.grey[850]!,
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              border: Border.all(
-                color: Colors.grey[800]!,
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                SafeArea(
-                  child: CustomSearchBar(
-                    onSearch: (term) => _handleSearch(term),
-                    onTagSearch: (tag) => _handleSearch(tag, isTag: true),
-                    allTags: _allTags,
-                  ),
-                ),
-                if (_displayTerm.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      _isTagSearch
-                          ? 'Kết quả của tag: $_displayTerm'
-                          : 'Kết quả của: $_displayTerm',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+          // Tags scroll horizontally
+          SizedBox(
+            height: 48,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _allTags.length,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Center(
+                  child: ActionChip(
+                    label: Text(
+                      _allTags[index],
+                      style: const TextStyle(color: Colors.white),
                     ),
+                    backgroundColor: Colors.grey[800],
+                    onPressed: () =>
+                        _handleSearch(_allTags[index], isTag: true),
                   ),
-              ],
+                ),
+              ),
             ),
           ),
+          if (_displayTerm.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                _isTagSearch
+                    ? 'Kết quả của tag: $_displayTerm'
+                    : 'Kết quả của: $_displayTerm',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           Expanded(
             child: _buildContent(),
           ),

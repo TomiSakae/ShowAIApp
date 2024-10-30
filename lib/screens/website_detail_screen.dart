@@ -222,18 +222,18 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        final url = Uri.parse(widget.website.link);
+                        final uri = Uri.parse(widget.website.link);
                         try {
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(
-                              url,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } else {
+                          if (!await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                            webOnlyWindowName: '_blank',
+                          )) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Không thể mở link này')),
+                                  content: Text('Không thể mở link này'),
+                                ),
                               );
                             }
                           }
@@ -241,7 +241,8 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text('Có lỗi xảy ra khi mở link')),
+                                content: Text('Có lỗi xảy ra khi mở link'),
+                              ),
                             );
                           }
                         }
@@ -315,7 +316,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -451,7 +452,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 16),
                   const RandomWebsites(),
                 ],
               ),

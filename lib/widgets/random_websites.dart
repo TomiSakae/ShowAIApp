@@ -45,7 +45,6 @@ class _RandomWebsitesState extends State<RandomWebsites> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 30),
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -76,13 +75,13 @@ class _RandomWebsitesState extends State<RandomWebsites> {
               Row(
                 children: [
                   Icon(
-                    Icons.shuffle,
+                    Icons.recommend_outlined,
                     color: Colors.blue[300],
                     size: 24,
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Đề xuất ngẫu nhiên',
+                    'Có thể bạn quan tâm',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -91,7 +90,7 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                   ),
                 ],
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
               isLoading
                   ? const Center(
                       child: Padding(
@@ -99,28 +98,28 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                         child: CircularProgressIndicator(),
                       ),
                     )
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        final crossAxisCount =
-                            constraints.maxWidth > 700 ? 4 : 2;
-
-                        final childAspectRatio =
-                            crossAxisCount == 4 ? 0.55 : 0.58;
-
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            childAspectRatio: childAspectRatio,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: randomWebsites.length,
+                      separatorBuilder: (context, index) => const Divider(
+                        color: Colors.grey,
+                        height: 32,
+                      ),
+                      itemBuilder: (context, index) {
+                        return Container(
+                          height: 360,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[850],
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: Colors.grey[800]!,
+                              width: 1,
+                            ),
                           ),
-                          itemCount: randomWebsites.length,
-                          itemBuilder: (context, index) {
-                            return WebsiteCard(website: randomWebsites[index]);
-                          },
+                          child: WebsiteCard(
+                            website: randomWebsites[index],
+                          ),
                         );
                       },
                     ),

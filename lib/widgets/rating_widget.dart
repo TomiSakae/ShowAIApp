@@ -212,11 +212,12 @@ class _RatingWidgetState extends State<RatingWidget> {
             }),
             if (!canRate) ...[
               const SizedBox(width: 16),
-              TextButton.icon(
+              IconButton(
                 onPressed: !isLoading ? _removeRating : null,
-                icon: const Icon(Icons.delete, color: Colors.red),
-                label: const Text('Xóa đánh giá',
-                    style: TextStyle(color: Colors.red)),
+                icon: const Icon(Icons.delete, color: Colors.red, size: 24),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                splashRadius: 24,
               ),
             ],
           ],

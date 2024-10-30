@@ -107,6 +107,7 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       bottomNavigationBar: NavigationBar(
+        height: 60,
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() {

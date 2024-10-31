@@ -29,6 +29,13 @@
             {
               "client_id": "1031619693187-gc4ns63hugogccuunr7aopgneh784ecf.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1031619693187-7afvldduhp8fk2m1avrkm4lchflo1t4c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.showai"
+              }
             }
           ]
         }
@@ -42,6 +49,22 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "1031619693187-jdcet2uflgg9if1fgp0jj6v6ktji65g7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tomisakae.showai",
+            "certificate_hash": "d9b86b5d8af40a480457ddb1b1bc30d8ac313f32"
+          }
+        },
+        {
+          "client_id": "1031619693187-jp8okdq3k6ikaf31qvtllscpb61qdob5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tomisakae.showai",
+            "certificate_hash": "7efdd226db5854f53aa8e95352074a0580c3dfaa"
+          }
+        },
         {
           "client_id": "1031619693187-gc4ns63hugogccuunr7aopgneh784ecf.apps.googleusercontent.com",
           "client_type": 3
@@ -58,6 +81,13 @@
             {
               "client_id": "1031619693187-gc4ns63hugogccuunr7aopgneh784ecf.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1031619693187-7afvldduhp8fk2m1avrkm4lchflo1t4c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.showai"
+              }
             }
           ]
         }

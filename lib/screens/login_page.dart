@@ -70,20 +70,30 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+
+      await googleSignIn.signOut();
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        setState(() {
+          _error = 'Đăng nhập Google bị hủy';
+        });
+        return;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential =
+      final UserCredential userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // Kiểm tra và tạo document user trong Firestore
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userCredential.user!.uid)
@@ -97,9 +107,16 @@ class _LoginPageState extends State<LoginPage> {
           'email': userCredential.user!.email,
           'username': userCredential.user!.displayName,
           'displayName': userCredential.user!.displayName,
+          'createdAt': FieldValue.serverTimestamp(),
         });
       }
+    } on FirebaseAuthException catch (e) {
+      print('Lỗi Firebase Auth: ${e.message}');
+      setState(() {
+        _error = 'Lỗi xác thực: ${e.message}';
+      });
     } catch (e) {
+      print('Lỗi không xác định: $e');
       setState(() {
         _error = 'Đã xảy ra lỗi khi đăng nhập với Google';
       });

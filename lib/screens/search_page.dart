@@ -191,7 +191,6 @@ class _SearchPageState extends State<SearchPage> {
       return Center(
         child: CircularProgressIndicator(
           color: AppTheme.primaryColor,
-          strokeWidth: 2,
         ),
       );
     }
@@ -215,21 +214,36 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
 
-    return GridView.builder(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 1200
+        ? 4
+        : screenWidth > 800
+            ? 3
+            : 2;
+
+    final padding = 16.0;
+    final spacing = 16.0;
+    final availableWidth =
+        screenWidth - (padding * 2) - (spacing * (crossAxisCount - 1));
+    final itemWidth = availableWidth / crossAxisCount;
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.65,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+      child: Wrap(
+        spacing: spacing,
+        runSpacing: spacing,
+        children: List.generate(
+          _websites.length,
+          (index) => SizedBox(
+            width: itemWidth,
+            child: WebsiteCard(
+              website: _websites[index],
+              showDescription: false,
+              onTagClick: (tag) => _handleSearch(tag, isTag: true),
+            ),
+          ),
+        ),
       ),
-      itemCount: _websites.length,
-      itemBuilder: (context, index) {
-        return WebsiteCard(
-          website: _websites[index],
-          onTagClick: (tag) => _handleSearch(tag, isTag: true),
-        );
-      },
     );
   }
 }

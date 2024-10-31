@@ -17,6 +17,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/banner_state.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'screens/ranking_page.dart';
 
 // Thêm hàm xử lý background message
 @pragma('vm:entry-point')
@@ -101,6 +102,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomePage(),
     const ChatPage(),
+    const RankingPage(),
     const LoginPage(),
   ];
 
@@ -276,7 +278,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _screens[2] = _isLoggedIn ? const AccountPage() : const LoginPage();
+    _screens[3] = _isLoggedIn ? const AccountPage() : const LoginPage();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -296,7 +298,7 @@ class _MainScreenState extends State<MainScreen> {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Không thể mở link này'),
+                            content: Text('Không thể m link này'),
                           ),
                         );
                       }
@@ -392,6 +394,10 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Trò chuyện',
           ),
           NavigationDestination(
+            icon: Icon(Icons.leaderboard, color: AppTheme.primaryColor),
+            label: 'BXH',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.person, color: AppTheme.primaryColor),
             label: _isLoggedIn ? 'Tài khoản' : 'Đăng nhập',
           ),
@@ -474,39 +480,32 @@ class _HomePageState extends State<HomePage> {
           : Column(
               children: [
                 Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) {
-                      if (pages.isNotEmpty) {
-                        final newPage = index % pages.length;
-                        setState(() => currentPage = newPage);
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final itemWidth = (constraints.maxWidth - 16) /
+                              2; // 16 là spacing giữa các items
 
-                        if (index >= pages.length) {
-                          _pageController.jumpToPage(newPage);
-                        } else if (index < 0) {
-                          _pageController.jumpToPage(pages.length - 1);
-                        }
-                      }
-                    },
-                    itemCount: null,
-                    itemBuilder: (context, index) {
-                      if (pages.isEmpty) return Container();
-                      final pageIndex = index % pages.length;
-                      return GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.65,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: pages[pageIndex].length,
-                        itemBuilder: (context, index) {
-                          return WebsiteCard(website: pages[pageIndex][index]);
+                          return Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children:
+                                List.generate(allWebsites.length, (index) {
+                              return SizedBox(
+                                width: itemWidth,
+                                child: WebsiteCard(
+                                  website: allWebsites[index],
+                                  showDescription:
+                                      false, // Không hiển thị mô tả
+                                ),
+                              );
+                            }),
+                          );
                         },
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
                 if (pages.length > 1)

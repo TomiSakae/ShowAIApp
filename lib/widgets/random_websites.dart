@@ -17,31 +17,6 @@ class _RandomWebsitesState extends State<RandomWebsites> {
   bool isLoading = true;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchRandomWebsites();
-  }
-
-  Future<void> _fetchRandomWebsites() async {
-    try {
-      final response =
-          await http.get(Uri.parse('https://showai.io.vn/api/showai?random=8'));
-      if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        setState(() {
-          randomWebsites = (data['data'] as List)
-              .map((item) => Website.fromJson(item))
-              .toList();
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Lỗi khi tải website ngẫu nhiên: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,13 +36,6 @@ class _RandomWebsitesState extends State<RandomWebsites> {
               color: AppTheme.primaryColor.withOpacity(0.3),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -102,36 +70,78 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                         ),
                       ),
                     )
-                  : ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: randomWebsites.length,
-                      separatorBuilder: (context, index) => Divider(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
-                        height: 32,
-                      ),
-                      itemBuilder: (context, index) {
-                        return Container(
-                          height: 360,
-                          decoration: BoxDecoration(
-                            color: AppTheme.cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.primaryColor.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: WebsiteCard(
-                            website: randomWebsites[index],
-                            showDescription: true,
-                          ),
-                        );
-                      },
-                    ),
+                  : _buildWebsitesList(),
             ],
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildWebsitesList() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 1200
+        ? 4
+        : screenWidth > 800
+            ? 3
+            : screenWidth > 600
+                ? 2
+                : 1;
+
+    final spacing = 16.0;
+    final availableWidth = screenWidth -
+        (40) -
+        (spacing * (crossAxisCount - 1)); // 40 là tổng padding của container
+    final itemWidth = availableWidth / crossAxisCount;
+
+    return Wrap(
+      spacing: spacing,
+      runSpacing: spacing,
+      children: List.generate(
+        randomWebsites.length,
+        (index) => SizedBox(
+          width: itemWidth,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: WebsiteCard(
+              website: randomWebsites[index],
+              showDescription: true,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRandomWebsites();
+  }
+
+  Future<void> _fetchRandomWebsites() async {
+    try {
+      final response =
+          await http.get(Uri.parse('https://showai.io.vn/api/showai?random=8'));
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          randomWebsites = (data['data'] as List)
+              .map((item) => Website.fromJson(item))
+              .toList();
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Lỗi khi tải website ngẫu nhiên: $e');
+      setState(() => isLoading = false);
+    }
   }
 }

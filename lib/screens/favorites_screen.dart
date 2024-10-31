@@ -96,83 +96,99 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         ),
         iconTheme: IconThemeData(color: AppTheme.primaryColor),
       ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.primaryColor,
-                strokeWidth: 2,
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: AppTheme.primaryColor,
+          strokeWidth: 2,
+        ),
+      );
+    }
+
+    if (_error.isNotEmpty) {
+      return Center(
+        child: Text(
+          _error,
+          style: TextStyle(
+            color: Colors.red,
+            fontSize: 16,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
+    if (_favoriteWebsites.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.favorite_border,
+              size: 48,
+              color: AppTheme.secondaryTextColor,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Chưa có mục yêu thích nào',
+              style: TextStyle(
+                color: AppTheme.secondaryTextColor,
+                fontSize: 16,
               ),
-            )
-          : _error.isNotEmpty
-              ? Center(
-                  child: Text(
-                    _error,
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final screenWidth = MediaQuery.of(context).size.width;
+    final crossAxisCount = screenWidth > 1200
+        ? 4
+        : screenWidth > 800
+            ? 3
+            : 2;
+
+    final padding = 16.0;
+    final spacing = 16.0;
+    final availableWidth =
+        screenWidth - (padding * 2) - (spacing * (crossAxisCount - 1));
+    final itemWidth = availableWidth / crossAxisCount;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Wrap(
+        spacing: spacing,
+        runSpacing: spacing,
+        children: List.generate(
+          _favoriteWebsites.length,
+          (index) => SizedBox(
+            width: itemWidth,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
-                )
-              : _favoriteWebsites.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.favorite_border,
-                            size: 48,
-                            color: AppTheme.secondaryTextColor,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Chưa có mục yêu thích nào',
-                            style: TextStyle(
-                              color: AppTheme.secondaryTextColor,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.65,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: _favoriteWebsites.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.cardColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppTheme.primaryColor.withOpacity(0.3),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: WebsiteCard(
-                              website: _favoriteWebsites[index],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                ],
+              ),
+              child: WebsiteCard(
+                  website: _favoriteWebsites[index], showDescription: false),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

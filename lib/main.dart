@@ -467,6 +467,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _onPageChanged(int page) {
+    setState(() {
+      currentPage = page;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -480,32 +486,36 @@ class _HomePageState extends State<HomePage> {
           : Column(
               children: [
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final itemWidth = (constraints.maxWidth - 16) /
-                              2; // 16 là spacing giữa các items
-
-                          return Wrap(
-                            spacing: 16,
-                            runSpacing: 16,
-                            children:
-                                List.generate(allWebsites.length, (index) {
-                              return SizedBox(
-                                width: itemWidth,
-                                child: WebsiteCard(
-                                  website: allWebsites[index],
-                                  showDescription:
-                                      false, // Không hiển thị mô tả
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: pages.length,
+                    itemBuilder: (context, pageIndex) {
+                      return SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final itemWidth = (constraints.maxWidth - 16) / 2;
+                              return Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                children: List.generate(
+                                  pages[pageIndex].length,
+                                  (index) => SizedBox(
+                                    width: itemWidth,
+                                    child: WebsiteCard(
+                                      website: pages[pageIndex][index],
+                                      showDescription: false,
+                                    ),
+                                  ),
                                 ),
                               );
-                            }),
-                          );
-                        },
-                      ),
-                    ),
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 if (pages.length > 1)

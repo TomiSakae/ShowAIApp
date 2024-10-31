@@ -11,6 +11,8 @@ import 'screens/account_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'widgets/persistent_search_bar.dart';
 import 'services/api_service.dart';
+import 'screens/chat_page.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,23 +29,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'ShowAI',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.dark,
-      ),
+      theme: AppTheme.darkTheme,
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+              ),
+            );
           }
-
-          // Nếu đã đăng nhập, chuyển đến MainScreen
-          if (snapshot.hasData) {
-            return const MainScreen();
-          }
-
-          // Nếu chưa đăng nhập, cũng chuyển đến MainScreen
           return const MainScreen();
         },
       ),
@@ -69,13 +65,13 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomePage(),
+    const ChatPage(),
     const LoginPage(),
   ];
 
   @override
   void initState() {
     super.initState();
-    // Kiểm tra trạng thái đăng nhập
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       setState(() {
         _isLoggedIn = user != null;
@@ -93,9 +89,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _screens[1] = _isLoggedIn ? const AccountPage() : const LoginPage();
+    _screens[2] = _isLoggedIn ? const AccountPage() : const LoginPage();
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: Column(
         children: [
           PersistentSearchBar(
@@ -108,6 +105,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: NavigationBar(
         height: 60,
+        backgroundColor: AppTheme.cardColor,
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) {
           setState(() {
@@ -115,12 +113,16 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home),
+          NavigationDestination(
+            icon: Icon(Icons.home, color: AppTheme.primaryColor),
             label: 'Trang chủ',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.chat, color: AppTheme.primaryColor),
+            label: 'Trò chuyện',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person, color: AppTheme.primaryColor),
             label: _isLoggedIn ? 'Tài khoản' : 'Đăng nhập',
           ),
         ],
@@ -168,8 +170,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+              ),
+            )
           : GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

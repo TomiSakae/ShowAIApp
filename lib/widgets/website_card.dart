@@ -3,6 +3,7 @@ import '../models/website.dart';
 import '../screens/website_detail_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../theme/app_theme.dart';
 
 class WebsiteCard extends StatefulWidget {
   final Website website;
@@ -25,14 +26,20 @@ class _WebsiteCardState extends State<WebsiteCard> {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
+      color: AppTheme.cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: AppTheme.primaryColor.withOpacity(0.3),
+        ),
+      ),
+      elevation: 4,
       child: InkWell(
         onTap: () async {
-          // Tăng lượt xem ngay lập tức
           setState(() {
             widget.website.view = (widget.website.view ?? 0) + 1;
           });
 
-          // Gọi API để cập nhật lượt xem ở backend
           try {
             await http.post(
               Uri.parse('https://showai.io.vn/api/incrementView'),
@@ -43,7 +50,6 @@ class _WebsiteCardState extends State<WebsiteCard> {
             print('Lỗi khi tăng lượt xem: $e');
           }
 
-          // Chuyển hướng đến trang chi tiết
           if (!context.mounted) return;
           Navigator.push(
             context,
@@ -62,8 +68,13 @@ class _WebsiteCardState extends State<WebsiteCard> {
                 child: Image.network(
                   widget.website.image!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const ColoredBox(color: Colors.grey),
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: AppTheme.cardColor.withOpacity(0.5),
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: AppTheme.secondaryTextColor,
+                    ),
+                  ),
                 ),
               ),
             Expanded(
@@ -74,10 +85,11 @@ class _WebsiteCardState extends State<WebsiteCard> {
                   children: [
                     Text(
                       widget.website.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.blue[300],
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -90,10 +102,11 @@ class _WebsiteCardState extends State<WebsiteCard> {
                             widget.website.description.isNotEmpty
                                 ? widget.website.description.first
                                 : '',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(height: 1.3),
+                            style: TextStyle(
+                              color: AppTheme.textColor,
+                              fontSize: 13,
+                              height: 1.3,
+                            ),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -110,11 +123,26 @@ class _WebsiteCardState extends State<WebsiteCard> {
                             child: Chip(
                               label: Text(
                                 tag,
-                                style: const TextStyle(fontSize: 12),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textColor,
+                                ),
+                              ),
+                              backgroundColor:
+                                  AppTheme.primaryColor.withOpacity(0.1),
+                              side: BorderSide(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
                               ),
                               materialTapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                               visualDensity: VisualDensity.compact,
+                              deleteIcon: widget.onTagClick != null
+                                  ? Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: AppTheme.primaryColor,
+                                    )
+                                  : null,
                               onDeleted: widget.onTagClick != null
                                   ? () => widget.onTagClick!(tag)
                                   : null,
@@ -128,49 +156,22 @@ class _WebsiteCardState extends State<WebsiteCard> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         if (widget.website.view != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.remove_red_eye,
-                                  size: 14, color: Colors.grey),
-                              const SizedBox(width: 2),
-                              Text(
-                                '${widget.website.view}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          _buildStatItem(
+                            Icons.remove_red_eye,
+                            '${widget.website.view}',
+                            AppTheme.secondaryTextColor,
                           ),
                         if (widget.website.heart != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.favorite,
-                                  size: 14, color: Colors.red),
-                              const SizedBox(width: 2),
-                              Text(
-                                '${widget.website.heart}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          _buildStatItem(
+                            Icons.favorite,
+                            '${widget.website.heart}',
+                            Colors.red,
                           ),
                         if (widget.website.evaluation != null)
-                          Row(
-                            children: [
-                              const Icon(Icons.star,
-                                  size: 14, color: Colors.amber),
-                              const SizedBox(width: 2),
-                              Text(
-                                widget.website.evaluation!.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+                          _buildStatItem(
+                            Icons.star,
+                            widget.website.evaluation!.toStringAsFixed(1),
+                            Colors.amber,
                           ),
                       ],
                     ),
@@ -181,6 +182,22 @@ class _WebsiteCardState extends State<WebsiteCard> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 2),
+        Text(
+          value,
+          style: TextStyle(
+            color: AppTheme.secondaryTextColor,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 }

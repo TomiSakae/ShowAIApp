@@ -9,6 +9,7 @@ import '../widgets/rating_widget.dart';
 import '../widgets/random_websites.dart';
 import '../widgets/comments_widget.dart';
 import '../models/comment.dart';
+import '../theme/app_theme.dart';
 
 class WebsiteDetailScreen extends StatefulWidget {
   final Website website;
@@ -166,12 +167,13 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppTheme.cardColor,
             flexibleSpace: FlexibleSpaceBar(
               background: widget.website.image != null
                   ? Stack(
@@ -191,8 +193,8 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Colors.transparent,
-                                Colors.black.withOpacity(0.3),
-                                Colors.black.withOpacity(0.8),
+                                AppTheme.backgroundColor.withOpacity(0.3),
+                                AppTheme.backgroundColor.withOpacity(0.8),
                               ],
                             ),
                           ),
@@ -205,6 +207,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
+                  color: AppTheme.textColor,
                 ),
               ),
             ),
@@ -212,7 +215,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor,
+                color: AppTheme.backgroundColor,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(30),
                   topRight: Radius.circular(30),
@@ -225,7 +228,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: AppTheme.cardColor,
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: Row(
@@ -287,8 +290,8 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: AppTheme.textColor,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -297,7 +300,10 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       label: const Text(
                         'Truy cập website',
                         style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textColor,
+                        ),
                       ),
                     ),
                   ),
@@ -361,13 +367,13 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Colors.grey[900]!,
-                          Colors.grey[850]!,
+                          AppTheme.cardColor,
+                          AppTheme.cardColor.withOpacity(0.9),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.grey[800]!,
+                        color: AppTheme.primaryColor.withOpacity(0.3),
                         width: 1,
                       ),
                       boxShadow: [
@@ -386,7 +392,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                           children: [
                             Icon(
                               Icons.description_outlined,
-                              color: Colors.blue[300],
+                              color: AppTheme.primaryColor,
                               size: 24,
                             ),
                             const SizedBox(width: 10),
@@ -395,7 +401,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[300],
+                                color: AppTheme.primaryColor,
                               ),
                             ),
                           ],
@@ -403,12 +409,11 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                         const SizedBox(height: 15),
                         Text(
                           widget.website.description.first,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    height: 1.6,
-                                    color: Colors.grey[300],
-                                    fontSize: 15,
-                                  ),
+                          style: TextStyle(
+                            height: 1.6,
+                            color: AppTheme.textColor,
+                            fontSize: 15,
+                          ),
                         ),
                       ],
                     ),
@@ -417,10 +422,10 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                   if (widget.website.keyFeatures.isNotEmpty) ...[
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.grey[850],
+                        color: AppTheme.cardColor,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.grey[800]!,
+                          color: AppTheme.primaryColor.withOpacity(0.3),
                           width: 1,
                         ),
                         boxShadow: [
@@ -439,7 +444,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                             children: [
                               Icon(
                                 Icons.stars_outlined,
-                                color: Colors.blue[300],
+                                color: AppTheme.primaryColor,
                                 size: 24,
                               ),
                               const SizedBox(width: 10),
@@ -448,7 +453,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue[300],
+                                  color: AppTheme.primaryColor,
                                 ),
                               ),
                             ],
@@ -463,7 +468,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                                   Text(
                                     '•',
                                     style: TextStyle(
-                                      color: Colors.blue[400],
+                                      color: AppTheme.primaryColor,
                                       fontSize: 24,
                                       height: 1,
                                     ),
@@ -472,14 +477,11 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                                   Expanded(
                                     child: Text(
                                       feature,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyLarge
-                                          ?.copyWith(
-                                            height: 1.5,
-                                            color: Colors.grey[300],
-                                            fontSize: 15,
-                                          ),
+                                      style: TextStyle(
+                                        height: 1.5,
+                                        color: AppTheme.textColor,
+                                        fontSize: 15,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -493,17 +495,10 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.grey[900]!,
-                          Colors.grey[850]!,
-                        ],
-                      ),
+                      color: AppTheme.cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.grey[800]!,
+                        color: AppTheme.primaryColor.withOpacity(0.3),
                         width: 1,
                       ),
                       boxShadow: [
@@ -523,7 +518,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                           children: [
                             Icon(
                               Icons.comment_outlined,
-                              color: Colors.blue[300],
+                              color: AppTheme.primaryColor,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -532,7 +527,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[300],
+                                color: AppTheme.primaryColor,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -540,13 +535,13 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
+                                color: AppTheme.primaryColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${comments.length}',
                                 style: TextStyle(
-                                  color: Colors.blue[300],
+                                  color: AppTheme.primaryColor,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -596,11 +591,12 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
       child: Column(
         children: [
           isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 28,
                   height: 28,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
+                    color: AppTheme.primaryColor,
                   ),
                 )
               : Icon(icon, color: color, size: 28),
@@ -617,7 +613,7 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppTheme.secondaryTextColor,
               fontSize: 12,
             ),
           ),

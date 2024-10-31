@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/comment.dart';
+import '../theme/app_theme.dart';
 
 class CommentsWidget extends StatefulWidget {
   final String websiteId;
@@ -134,8 +135,12 @@ class _CommentsWidgetState extends State<CommentsWidget> {
         bottom: 8,
         right: 0,
       ),
+      color: AppTheme.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: AppTheme.primaryColor.withOpacity(0.3),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -151,10 +156,10 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                     children: [
                       Text(
                         comment.user,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
-                          color: Colors.blue,
+                          color: AppTheme.primaryColor,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -162,7 +167,7 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                         _formatDate(comment.date),
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey[500],
+                          color: AppTheme.secondaryTextColor,
                         ),
                       ),
                     ],
@@ -177,7 +182,7 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                         onPressed: () => _startEditing(comment),
                         padding: const EdgeInsets.all(4),
                         constraints: const BoxConstraints(),
-                        color: Colors.blue,
+                        color: AppTheme.primaryColor,
                       ),
                       const SizedBox(width: 8),
                       IconButton(
@@ -198,7 +203,10 @@ class _CommentsWidgetState extends State<CommentsWidget> {
             else
               Text(
                 comment.text,
-                style: const TextStyle(fontSize: 14),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppTheme.textColor,
+                ),
               ),
             if (widget.user != null &&
                 !isReply &&
@@ -249,14 +257,25 @@ class _CommentsWidgetState extends State<CommentsWidget> {
         TextField(
           controller: _editController,
           maxLines: 3,
-          style: const TextStyle(fontSize: 14),
+          style: TextStyle(fontSize: 14, color: AppTheme.textColor),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.all(8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
+              borderSide:
+                  BorderSide(color: AppTheme.primaryColor.withOpacity(0.3)),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: AppTheme.primaryColor),
+            ),
+            fillColor: AppTheme.cardColor,
+            filled: true,
             hintText: 'Chỉnh sửa bình luận...',
-            hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+            hintStyle: TextStyle(
+              fontSize: 13,
+              color: AppTheme.secondaryTextColor,
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -578,14 +597,14 @@ class _CommentsWidgetState extends State<CommentsWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
           child: Text(
             'Bình luận',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.blue,
+              color: AppTheme.primaryColor,
             ),
           ),
         ),
@@ -605,9 +624,21 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                 TextField(
                   controller: _commentController,
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                  style: TextStyle(color: AppTheme.textColor),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: AppTheme.primaryColor),
+                    ),
+                    fillColor: AppTheme.cardColor,
+                    filled: true,
                     hintText: 'Viết bình luận của bạn...',
+                    hintStyle: TextStyle(color: AppTheme.secondaryTextColor),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -615,6 +646,13 @@ class _CommentsWidgetState extends State<CommentsWidget> {
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
                     onPressed: isLoading ? null : _handleCommentSubmit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: AppTheme.textColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     child: Text(isLoading ? 'Đang gửi...' : 'Gửi'),
                   ),
                 ),
@@ -622,11 +660,11 @@ class _CommentsWidgetState extends State<CommentsWidget> {
             ),
           )
         else
-          const Padding(
-            padding: EdgeInsets.only(bottom: 16),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
             child: Text(
               'Vui lòng đăng nhập để bình luận',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppTheme.secondaryTextColor),
             ),
           ),
         if (isLoading && comments.isEmpty)

@@ -7,6 +7,7 @@ import 'change_password_screen.dart';
 import 'delete_account_screen.dart';
 import 'favorites_screen.dart';
 import 'change_display_name_screen.dart';
+import '../theme/app_theme.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -78,6 +79,14 @@ class _AccountPageState extends State<AccountPage> {
       children: [
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          color: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+            ),
+          ),
+          elevation: 0,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -86,14 +95,15 @@ class _AccountPageState extends State<AccountPage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.person),
+                    Icon(Icons.person, color: AppTheme.primaryColor),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
                         _displayName ?? 'Người dùng',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: AppTheme.textColor,
                         ),
                         softWrap: true,
                       ),
@@ -108,15 +118,24 @@ class _AccountPageState extends State<AccountPage> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: AppTheme.cardColor,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+            ),
           ),
           child: Column(
             children: [
               ListTile(
-                leading: const Icon(Icons.edit),
-                title: const Text('Đổi tên hiển thị'),
-                trailing: const Icon(Icons.chevron_right),
+                leading: Icon(Icons.edit, color: AppTheme.primaryColor),
+                title: Text(
+                  'Đổi tên hiển thị',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.secondaryTextColor,
+                ),
                 onTap: () async {
                   final newName = await Navigator.push<String>(
                     context,
@@ -131,27 +150,51 @@ class _AccountPageState extends State<AccountPage> {
                   }
                 },
               ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
+              Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: AppTheme.primaryColor.withOpacity(0.1),
+              ),
               ListTile(
-                leading: const Icon(Icons.favorite),
-                title: const Text('Yêu thích'),
-                trailing: const Icon(Icons.chevron_right),
+                leading: Icon(Icons.favorite, color: AppTheme.primaryColor),
+                title: Text(
+                  'Yêu thích',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.secondaryTextColor,
+                ),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const FavoritesScreen()),
+                    builder: (context) => const FavoritesScreen(),
+                  ),
                 ),
               ),
               if (!_isGoogleUser) ...[
-                const Divider(height: 1, indent: 16, endIndent: 16),
+                Divider(
+                  height: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: AppTheme.primaryColor.withOpacity(0.1),
+                ),
                 ListTile(
-                  leading: const Icon(Icons.lock),
-                  title: const Text('Đổi mật khẩu'),
-                  trailing: const Icon(Icons.chevron_right),
+                  leading: Icon(Icons.lock, color: AppTheme.primaryColor),
+                  title: Text(
+                    'Đổi mật khẩu',
+                    style: TextStyle(color: AppTheme.textColor),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: AppTheme.secondaryTextColor,
+                  ),
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const ChangePasswordScreen()),
+                      builder: (context) => const ChangePasswordScreen(),
+                    ),
                   ),
                 ),
               ],
@@ -162,8 +205,11 @@ class _AccountPageState extends State<AccountPage> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: AppTheme.cardColor,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+            ),
           ),
           child: Column(
             children: [
@@ -173,18 +219,33 @@ class _AccountPageState extends State<AccountPage> {
                   'Xóa tài khoản',
                   style: TextStyle(color: Colors.red),
                 ),
-                trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Colors.red,
+                ),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const DeleteAccountScreen()),
+                    builder: (context) => const DeleteAccountScreen(),
+                  ),
                 ),
               ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
+              Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: AppTheme.primaryColor.withOpacity(0.1),
+              ),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Đăng xuất'),
-                trailing: const Icon(Icons.chevron_right),
+                leading: Icon(Icons.logout, color: AppTheme.primaryColor),
+                title: Text(
+                  'Đăng xuất',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: AppTheme.secondaryTextColor,
+                ),
                 onTap: _handleSignOut,
               ),
             ],
@@ -197,8 +258,14 @@ class _AccountPageState extends State<AccountPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+                strokeWidth: 2,
+              ),
+            )
           : _buildInfoTab(),
     );
   }

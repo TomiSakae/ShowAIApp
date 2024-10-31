@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../models/website.dart';
 import '../widgets/website_card.dart';
+import '../theme/app_theme.dart';
 
 class SearchPage extends StatefulWidget {
   final String? initialSearchTerm;
@@ -84,81 +85,134 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: TextField(
-          controller: _searchController,
-          autofocus: true, // Tự động focus khi vào màn hình
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            hintText: 'Tìm kiếm công cụ AI...',
-            hintStyle: TextStyle(color: Colors.grey),
-            border: InputBorder.none,
-          ),
-          onSubmitted: (value) => _performSearch(value),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Tags scroll horizontally
-          SizedBox(
-            height: 48,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _allTags.length,
-              itemBuilder: (context, index) => Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: Center(
-                  child: ActionChip(
-                    label: Text(
-                      _allTags[index],
-                      style: const TextStyle(color: Colors.white),
+      backgroundColor: AppTheme.backgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              color: AppTheme.cardColor,
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: AppTheme.primaryColor,
                     ),
-                    backgroundColor: Colors.grey[800],
-                    onPressed: () =>
-                        _handleSearch(_allTags[index], isTag: true),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      style: TextStyle(color: AppTheme.textColor),
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm công cụ AI...',
+                        hintStyle:
+                            TextStyle(color: AppTheme.secondaryTextColor),
+                        border: InputBorder.none,
+                        fillColor: AppTheme.cardColor,
+                        filled: true,
+                      ),
+                      onSubmitted: (value) => _performSearch(value),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.primaryColor.withOpacity(0.3),
+                  ),
+                ),
+              ),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _allTags.length,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Center(
+                    child: ActionChip(
+                      label: Text(
+                        _allTags[index],
+                        style: TextStyle(color: AppTheme.textColor),
+                      ),
+                      backgroundColor: AppTheme.cardColor,
+                      side: BorderSide(
+                        color: AppTheme.primaryColor.withOpacity(0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onPressed: () =>
+                          _handleSearch(_allTags[index], isTag: true),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (_displayTerm.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                _isTagSearch
-                    ? 'Kết quả của tag: $_displayTerm'
-                    : 'Kết quả của: $_displayTerm',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+            if (_displayTerm.isNotEmpty)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardColor,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                    ),
+                  ),
+                ),
+                child: Text(
+                  _isTagSearch
+                      ? 'Kết quả của tag: $_displayTerm'
+                      : 'Kết quả của: $_displayTerm',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+            Expanded(
+              child: _buildContent(),
             ),
-          Expanded(
-            child: _buildContent(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: AppTheme.primaryColor,
+          strokeWidth: 2,
+        ),
+      );
     }
 
     if (_error != null) {
       return Center(
-          child: Text(_error!, style: const TextStyle(color: Colors.red)));
+        child: Text(
+          _error!,
+          style: const TextStyle(color: Colors.red),
+          textAlign: TextAlign.center,
+        ),
+      );
     }
 
     if (_websites.isEmpty) {
-      return const Center(child: Text('Không tìm thấy kết quả'));
+      return Center(
+        child: Text(
+          'Không tìm thấy kết quả',
+          style: TextStyle(color: AppTheme.secondaryTextColor),
+        ),
+      );
     }
 
     return GridView.builder(

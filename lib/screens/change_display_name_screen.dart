@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../theme/app_theme.dart';
 
 class ChangeDisplayNameScreen extends StatefulWidget {
   final String? currentDisplayName;
@@ -62,8 +63,18 @@ class _ChangeDisplayNameScreenState extends State<ChangeDisplayNameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Đổi tên hiển thị'),
+        title: Text(
+          'Đổi tên hiển thị',
+          style: TextStyle(
+            color: AppTheme.textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: AppTheme.cardColor,
+        elevation: 0,
+        iconTheme: IconThemeData(color: AppTheme.primaryColor),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -74,9 +85,28 @@ class _ChangeDisplayNameScreenState extends State<ChangeDisplayNameScreen> {
             children: [
               TextFormField(
                 controller: _displayNameController,
-                decoration: const InputDecoration(
+                style: TextStyle(color: AppTheme.textColor),
+                decoration: InputDecoration(
                   labelText: 'Tên hiển thị',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: AppTheme.secondaryTextColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppTheme.primaryColor.withOpacity(0.3),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppTheme.primaryColor),
+                  ),
+                  filled: true,
+                  fillColor: AppTheme.cardColor,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -87,21 +117,51 @@ class _ChangeDisplayNameScreenState extends State<ChangeDisplayNameScreen> {
               ),
               if (_error.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text(
-                  _error,
-                  style: const TextStyle(color: Colors.red),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _error,
+                    style: TextStyle(
+                      color: Colors.red[700],
+                      fontSize: 14,
+                    ),
+                  ),
                 ),
               ],
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _updateDisplayName,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: AppTheme.cardColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppTheme.cardColor,
+                          ),
+                        ),
                       )
-                    : const Text('Cập nhật'),
+                    : const Text(
+                        'Cập nhật',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           ),

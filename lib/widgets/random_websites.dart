@@ -3,6 +3,7 @@ import '../models/website.dart';
 import 'website_card.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../theme/app_theme.dart';
 
 class RandomWebsites extends StatefulWidget {
   const RandomWebsites({super.key});
@@ -51,13 +52,13 @@ class _RandomWebsitesState extends State<RandomWebsites> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.grey[900]!,
-                Colors.grey[850]!,
+                AppTheme.cardColor,
+                AppTheme.cardColor.withOpacity(0.9),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.grey[800]!,
+              color: AppTheme.primaryColor.withOpacity(0.3),
               width: 1,
             ),
             boxShadow: [
@@ -76,7 +77,7 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                 children: [
                   Icon(
                     Icons.recommend_outlined,
-                    color: Colors.blue[300],
+                    color: AppTheme.primaryColor,
                     size: 24,
                   ),
                   const SizedBox(width: 10),
@@ -85,35 +86,38 @@ class _RandomWebsitesState extends State<RandomWebsites> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue[300],
+                      color: AppTheme.primaryColor,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
               isLoading
-                  ? const Center(
+                  ? Center(
                       child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(),
+                        padding: const EdgeInsets.all(20),
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryColor,
+                          strokeWidth: 2,
+                        ),
                       ),
                     )
                   : ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: randomWebsites.length,
-                      separatorBuilder: (context, index) => const Divider(
-                        color: Colors.grey,
+                      separatorBuilder: (context, index) => Divider(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
                         height: 32,
                       ),
                       itemBuilder: (context, index) {
                         return Container(
                           height: 360,
                           decoration: BoxDecoration(
-                            color: Colors.grey[850],
-                            borderRadius: BorderRadius.circular(15),
+                            color: AppTheme.cardColor,
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.grey[800]!,
+                              color: AppTheme.primaryColor.withOpacity(0.3),
                               width: 1,
                             ),
                           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../theme/app_theme.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -123,6 +124,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -134,15 +136,37 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Text(
                     _isLogin ? 'Đăng nhập' : 'Đăng ký',
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  // Username field
                   TextFormField(
                     controller: _usernameController,
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
                       labelText: 'Tên đăng nhập',
-                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(color: AppTheme.secondaryTextColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppTheme.primaryColor),
+                      ),
+                      filled: true,
+                      fillColor: AppTheme.cardColor,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -152,12 +176,30 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Password field
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: AppTheme.textColor),
+                    decoration: InputDecoration(
                       labelText: 'Mật khẩu',
-                      border: OutlineInputBorder(),
+                      labelStyle: TextStyle(color: AppTheme.secondaryTextColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppTheme.primaryColor),
+                      ),
+                      filled: true,
+                      fillColor: AppTheme.cardColor,
                     ),
                     obscureText: true,
                     validator: (value) {
@@ -168,13 +210,32 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Confirm Password field - ch��� hiện khi đăng ký
                   if (!_isLogin) ...[
                     TextFormField(
                       controller: _confirmPasswordController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: AppTheme.textColor),
+                      decoration: InputDecoration(
                         labelText: 'Xác nhận mật khẩu',
-                        border: OutlineInputBorder(),
+                        labelStyle:
+                            TextStyle(color: AppTheme.secondaryTextColor),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppTheme.primaryColor.withOpacity(0.3),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: AppTheme.primaryColor),
+                        ),
+                        filled: true,
+                        fillColor: AppTheme.cardColor,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -189,7 +250,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  // Terms checkbox
                   CheckboxListTile(
                     value: _agreeToTerms,
                     onChanged: (value) {
@@ -197,7 +257,12 @@ class _LoginPageState extends State<LoginPage> {
                         _agreeToTerms = value ?? false;
                       });
                     },
-                    title: const Text('Tôi đồng ý với điều khoản sử dụng'),
+                    title: Text(
+                      'Tôi đồng ý với điều khoản sử dụng',
+                      style: TextStyle(color: AppTheme.textColor),
+                    ),
+                    checkColor: AppTheme.cardColor,
+                    activeColor: AppTheme.primaryColor,
                   ),
                   if (_error.isNotEmpty)
                     Padding(
@@ -208,20 +273,42 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   const SizedBox(height: 24),
-                  // Login/Register button
                   ElevatedButton(
                     onPressed: _handleEmailAuth,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: AppTheme.cardColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     child: Text(_isLogin ? 'Đăng nhập' : 'Đăng ký'),
                   ),
                   const SizedBox(height: 16),
-                  // Google sign in button
                   ElevatedButton.icon(
                     onPressed: _handleGoogleAuth,
                     icon: const Icon(Icons.g_mobiledata),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.cardColor,
+                      foregroundColor: AppTheme.primaryColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: AppTheme.primaryColor.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
                     label: const Text('Đăng nhập với Google'),
                   ),
                   const SizedBox(height: 16),
-                  // Switch between login/register
                   TextButton(
                     onPressed: () {
                       setState(() {
@@ -229,9 +316,14 @@ class _LoginPageState extends State<LoginPage> {
                         _error = '';
                       });
                     },
-                    child: Text(_isLogin
-                        ? 'Chưa có tài khoản? Đăng ký'
-                        : 'Đã có tài khoản? Đăng nhập'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                    ),
+                    child: Text(
+                      _isLogin
+                          ? 'Chưa có tài khoản? Đăng ký'
+                          : 'Đã có tài khoản? Đăng nhập',
+                    ),
                   ),
                 ],
               ),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/website.dart';
 import '../widgets/website_card.dart';
+import '../theme/app_theme.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -82,43 +83,95 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('Yêu thích'),
+        backgroundColor: AppTheme.cardColor,
+        elevation: 0,
+        title: Text(
+          'Yêu thích',
+          style: TextStyle(
+            color: AppTheme.textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        iconTheme: IconThemeData(color: AppTheme.primaryColor),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+                strokeWidth: 2,
+              ),
+            )
           : _error.isNotEmpty
-              ? Center(child: Text(_error))
+              ? Center(
+                  child: Text(
+                    _error,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )
               : _favoriteWebsites.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.favorite_border,
-                              size: 48, color: Colors.grey),
-                          SizedBox(height: 16),
+                          Icon(
+                            Icons.favorite_border,
+                            size: 48,
+                            color: AppTheme.secondaryTextColor,
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             'Chưa có mục yêu thích nào',
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: AppTheme.secondaryTextColor,
+                              fontSize: 16,
+                            ),
                           ),
                         ],
                       ),
                     )
-                  : GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.65,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
+                  : Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.backgroundColor,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      itemCount: _favoriteWebsites.length,
-                      itemBuilder: (context, index) {
-                        return WebsiteCard(
-                          website: _favoriteWebsites[index],
-                        );
-                      },
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.65,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: _favoriteWebsites.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: AppTheme.cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppTheme.primaryColor.withOpacity(0.3),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: WebsiteCard(
+                              website: _favoriteWebsites[index],
+                            ),
+                          );
+                        },
+                      ),
                     ),
     );
   }

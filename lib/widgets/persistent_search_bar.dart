@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class PersistentSearchBar extends StatelessWidget {
   final VoidCallback onTap;
@@ -12,11 +13,12 @@ class PersistentSearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: AppTheme.backgroundColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
             blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -28,21 +30,25 @@ class PersistentSearchBar extends StatelessWidget {
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey[900],
+              color: AppTheme.cardColor,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.grey[800]!,
+                color: AppTheme.primaryColor.withOpacity(0.3),
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.search, color: Colors.grey[400]),
+                Icon(
+                  Icons.search,
+                  color: AppTheme.secondaryTextColor,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Text(
                   'Tìm kiếm công cụ AI...',
                   style: TextStyle(
-                    color: Colors.grey[400],
+                    color: AppTheme.secondaryTextColor,
                     fontSize: 16,
                   ),
                 ),

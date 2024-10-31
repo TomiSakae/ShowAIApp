@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../theme/app_theme.dart';
 
 class RatingWidget extends StatefulWidget {
   final String websiteId;
@@ -60,9 +61,7 @@ class _RatingWidgetState extends State<RatingWidget> {
   Future<void> _handleRating(double rating) async {
     final user = _auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng đăng nhập để đánh giá')),
-      );
+      _showSnackBar('Vui lòng đăng nhập để đánh giá');
       return;
     }
 
@@ -89,9 +88,7 @@ class _RatingWidgetState extends State<RatingWidget> {
         userRating = null;
         canRate = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: ${e.toString()}')),
-      );
+      _showSnackBar('Có lỗi xảy ra: ${e.toString()}', isError: true);
     } finally {
       setState(() => isLoading = false);
     }
@@ -119,9 +116,7 @@ class _RatingWidgetState extends State<RatingWidget> {
       // Gọi API xóa rating
       await _removeRatingAPI();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: ${e.toString()}')),
-      );
+      _showSnackBar('Có lỗi xảy ra: ${e.toString()}', isError: true);
     } finally {
       setState(() => isLoading = false);
     }
@@ -173,20 +168,26 @@ class _RatingWidgetState extends State<RatingWidget> {
       children: [
         Row(
           children: [
-            const Text(
+            Text(
               'Đánh giá',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: AppTheme.primaryColor,
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.star, color: Colors.amber[400], size: 20),
+            Icon(
+              Icons.star,
+              color: Colors.amber[400],
+              size: 20,
+            ),
             const SizedBox(width: 4),
             Text(
               widget.initialRating.toStringAsFixed(1),
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: AppTheme.secondaryTextColor,
+              ),
             ),
           ],
         ),
@@ -199,14 +200,17 @@ class _RatingWidgetState extends State<RatingWidget> {
                 onTap: canRate && !isLoading
                     ? () => _handleRating(starRating.toDouble())
                     : null,
-                child: Icon(
-                  Icons.star,
-                  size: 32,
-                  color: (userRating != null && starRating <= userRating!) ||
-                          (userRating == null &&
-                              starRating <= widget.initialRating)
-                      ? Colors.amber
-                      : Colors.grey[400],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                  child: Icon(
+                    Icons.star,
+                    size: 32,
+                    color: (userRating != null && starRating <= userRating!) ||
+                            (userRating == null &&
+                                starRating <= widget.initialRating)
+                        ? Colors.amber
+                        : AppTheme.secondaryTextColor.withOpacity(0.3),
+                  ),
                 ),
               );
             }),
@@ -214,7 +218,11 @@ class _RatingWidgetState extends State<RatingWidget> {
               const SizedBox(width: 16),
               IconButton(
                 onPressed: !isLoading ? _removeRating : null,
-                icon: const Icon(Icons.delete, color: Colors.red, size: 24),
+                icon: Icon(
+                  Icons.delete,
+                  color: Colors.red.shade400,
+                  size: 24,
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
                 splashRadius: 24,
@@ -223,11 +231,30 @@ class _RatingWidgetState extends State<RatingWidget> {
           ],
         ),
         if (isLoading)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: CircularProgressIndicator(),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppTheme.primaryColor,
+            ),
           ),
       ],
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: AppTheme.textColor),
+        ),
+        backgroundColor: isError ? Colors.red : AppTheme.cardColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
     );
   }
 }

@@ -317,10 +317,21 @@ class _HomePageState extends State<HomePage> {
                   child: PageView.builder(
                     controller: _pageController,
                     onPageChanged: (index) {
-                      setState(() => currentPage = index);
+                      if (pages.isNotEmpty) {
+                        final newPage = index % pages.length;
+                        setState(() => currentPage = newPage);
+
+                        if (index >= pages.length) {
+                          _pageController.jumpToPage(newPage);
+                        } else if (index < 0) {
+                          _pageController.jumpToPage(pages.length - 1);
+                        }
+                      }
                     },
-                    itemCount: pages.length,
-                    itemBuilder: (context, pageIndex) {
+                    itemCount: null,
+                    itemBuilder: (context, index) {
+                      if (pages.isEmpty) return Container();
+                      final pageIndex = index % pages.length;
                       return GridView.builder(
                         padding: const EdgeInsets.all(16),
                         gridDelegate:

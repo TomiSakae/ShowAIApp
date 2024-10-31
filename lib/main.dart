@@ -13,6 +13,9 @@ import 'widgets/persistent_search_bar.dart';
 import 'services/api_service.dart';
 import 'screens/chat_page.dart';
 import 'theme/app_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services/banner_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +65,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   bool _isLoggedIn = false;
   final _apiService = ApiService();
+  bool _showBanner = true;
 
   final List<Widget> _screens = [
     const HomePage(),
@@ -72,11 +76,34 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _loadBannerPreference();
+    BannerState.showBanner.addListener(_onBannerStateChanged);
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       setState(() {
         _isLoggedIn = user != null;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    BannerState.showBanner.removeListener(_onBannerStateChanged);
+    super.dispose();
+  }
+
+  void _onBannerStateChanged() {
+    setState(() {
+      _showBanner = BannerState.showBanner.value;
+    });
+  }
+
+  Future<void> _loadBannerPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final showBanner = prefs.getBool('show_banner') ?? true;
+    setState(() {
+      _showBanner = showBanner;
+    });
+    BannerState.showBanner.value = showBanner;
   }
 
   void _navigateToSearch() {
@@ -93,15 +120,98 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: Column(
-        children: [
-          PersistentSearchBar(
-            onTap: _navigateToSearch,
-          ),
-          Expanded(
-            child: _screens[_selectedIndex],
-          ),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            if (_selectedIndex == 0 && _showBanner)
+              InkWell(
+                onTap: () async {
+                  final uri = Uri.parse('https://showai.io.vn');
+                  try {
+                    if (!await launchUrl(
+                      uri,
+                      mode: LaunchMode.externalApplication,
+                      webOnlyWindowName: '_blank',
+                    )) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Không thể mở link này'),
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Có lỗi xảy ra khi mở link'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor.withOpacity(0.8),
+                        AppTheme.primaryColor.withOpacity(0.6),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.language,
+                        color: AppTheme.textColor,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Truy cập ShowAI trên Web',
+                              style: TextStyle(
+                                color: AppTheme.textColor,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'showai.io.vn',
+                              style: TextStyle(
+                                color: AppTheme.textColor.withOpacity(0.8),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: AppTheme.textColor,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            PersistentSearchBar(
+              onTap: _navigateToSearch,
+            ),
+            Expanded(
+              child: _screens[_selectedIndex],
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         height: 60,

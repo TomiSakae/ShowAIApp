@@ -8,6 +8,8 @@ import 'delete_account_screen.dart';
 import 'favorites_screen.dart';
 import 'change_display_name_screen.dart';
 import '../theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../services/banner_state.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -21,12 +23,14 @@ class _AccountPageState extends State<AccountPage> {
   String _error = '';
   bool _isLoading = true;
   bool _isGoogleUser = false;
+  bool _showBanner = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _checkAuthProvider();
+    _loadBannerPreference();
   }
 
   void _checkAuthProvider() {
@@ -71,6 +75,24 @@ class _AccountPageState extends State<AccountPage> {
         _error = 'Lỗi khi đăng xuất';
       });
     }
+  }
+
+  Future<void> _loadBannerPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final showBanner = prefs.getBool('show_banner') ?? true;
+    setState(() {
+      _showBanner = showBanner;
+    });
+    BannerState.showBanner.value = showBanner;
+  }
+
+  Future<void> _toggleBanner(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_banner', value);
+    setState(() {
+      _showBanner = value;
+    });
+    BannerState.showBanner.value = value;
   }
 
   Widget _buildInfoTab() {
@@ -198,6 +220,18 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                 ),
               ],
+              ListTile(
+                leading: Icon(Icons.web, color: AppTheme.primaryColor),
+                title: Text(
+                  'Banner web',
+                  style: TextStyle(color: AppTheme.textColor),
+                ),
+                trailing: Switch(
+                  value: _showBanner,
+                  onChanged: _toggleBanner,
+                  activeColor: AppTheme.primaryColor,
+                ),
+              ),
             ],
           ),
         ),

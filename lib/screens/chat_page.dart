@@ -25,6 +25,8 @@ class _ChatPageState extends State<ChatPage> {
 
   final List<ModelGroup> _modelGroups = modelGroups;
 
+  final TextEditingController _editController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -33,15 +35,24 @@ class _ChatPageState extends State<ChatPage> {
         .models[0];
   }
 
-  Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty) return;
+  Future<void> _sendMessage({int? replyToIndex, String? userMessage}) async {
+    if (userMessage == null &&
+        replyToIndex == null &&
+        _messageController.text.trim().isEmpty) return;
 
-    final message = _messageController.text;
-    setState(() {
-      _messages.add(ChatMessage(text: message, isUser: true));
-      _isLoading = true;
-      _messageController.clear();
-    });
+    final message = userMessage ??
+        (replyToIndex == null
+            ? _messageController.text
+            : _messages[replyToIndex].text);
+
+    if (userMessage == null && replyToIndex == null) {
+      setState(() {
+        _messages.add(ChatMessage(text: message, isUser: true));
+        _messageController.clear();
+      });
+    }
+
+    setState(() => _isLoading = true);
 
     try {
       final keyResponse = await http.get(
@@ -85,9 +96,7 @@ class _ChatPageState extends State<ChatPage> {
         ));
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
@@ -101,54 +110,236 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Widget _buildMessageWidget(ChatMessage message) {
-    return Container(
-      margin: EdgeInsets.only(
-        bottom: 8,
-        left: message.isUser ? 32 : 0,
-        right: message.isUser ? 0 : 32,
-      ),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: message.isUser
-            ? AppTheme.primaryColor.withOpacity(0.1)
-            : AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: message.isUser
-              ? AppTheme.primaryColor.withOpacity(0.3)
-              : AppTheme.primaryColor.withOpacity(0.1),
+  Widget _buildMessageWidget(ChatMessage message, int index) {
+    return GestureDetector(
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: AppTheme.cardColor,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          builder: (context) => Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.secondaryTextColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.edit, color: AppTheme.primaryColor),
+                  title: Text(
+                    'Sửa tin nhắn',
+                    style: TextStyle(color: AppTheme.textColor),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _editMessage(index);
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete, color: AppTheme.primaryColor),
+                  title: Text(
+                    'Xóa tin nhắn',
+                    style: TextStyle(color: AppTheme.textColor),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteMessage(index);
+                  },
+                ),
+                if (!message.isUser)
+                  ListTile(
+                    leading: Icon(Icons.refresh, color: AppTheme.primaryColor),
+                    title: Text(
+                      'Tạo phản hồi mới',
+                      style: TextStyle(color: AppTheme.textColor),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _regenerateResponse(index);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: EdgeInsets.only(
+          bottom: 8,
+          left: message.isUser ? 32 : 0,
+          right: message.isUser ? 0 : 32,
         ),
-      ),
-      child: message.isUser
-          ? Text(
-              message.text,
-              style: TextStyle(
-                color: AppTheme.textColor,
-                fontSize: 15,
-                height: 1.5,
-              ),
-            )
-          : MarkdownBody(
-              data: message.text,
-              styleSheet: MarkdownStyleSheet(
-                p: TextStyle(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: message.isUser
+              ? AppTheme.primaryColor.withOpacity(0.1)
+              : AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: message.isUser
+                ? AppTheme.primaryColor.withOpacity(0.3)
+                : AppTheme.primaryColor.withOpacity(0.1),
+          ),
+        ),
+        child: message.isUser
+            ? Text(
+                message.text,
+                style: TextStyle(
                   color: AppTheme.textColor,
                   fontSize: 15,
                   height: 1.5,
                 ),
-                code: TextStyle(
-                  color: AppTheme.textColor,
-                  backgroundColor: AppTheme.backgroundColor.withOpacity(0.3),
-                  fontSize: 14,
-                ),
-                codeblockDecoration: BoxDecoration(
-                  color: AppTheme.backgroundColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+              )
+            : MarkdownBody(
+                data: message.text,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: AppTheme.textColor,
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                  code: TextStyle(
+                    color: AppTheme.textColor,
+                    backgroundColor: AppTheme.backgroundColor.withOpacity(0.3),
+                    fontSize: 14,
+                  ),
+                  codeblockDecoration: BoxDecoration(
+                    color: AppTheme.backgroundColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
-            ),
+      ),
     );
+  }
+
+  void _clearChat() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        title: Text(
+          'Xác nhận',
+          style: TextStyle(color: AppTheme.textColor),
+        ),
+        content: Text(
+          'Bạn có chắc muốn xóa toàn bộ cuộc trò chuyện?',
+          style: TextStyle(color: AppTheme.textColor),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Hủy',
+              style: TextStyle(color: AppTheme.secondaryTextColor),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() => _messages.clear());
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Xóa',
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteMessage(int index) {
+    setState(() => _messages.removeAt(index));
+  }
+
+  void _editMessage(int index) {
+    _editController.text = _messages[index].text;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        title: Text(
+          'Sửa tin nhắn',
+          style: TextStyle(color: AppTheme.textColor),
+        ),
+        content: TextField(
+          controller: _editController,
+          maxLines: null,
+          style: TextStyle(color: AppTheme.textColor),
+          decoration: InputDecoration(
+            hintText: 'Nhập nội dung mới...',
+            hintStyle: TextStyle(color: AppTheme.secondaryTextColor),
+            enabledBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: AppTheme.primaryColor.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: AppTheme.primaryColor),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Hủy',
+              style: TextStyle(color: AppTheme.secondaryTextColor),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _messages[index] = ChatMessage(
+                  text: _editController.text,
+                  isUser: _messages[index].isUser,
+                );
+              });
+              Navigator.pop(context);
+              if (_messages[index].isUser && index < _messages.length - 1) {
+                _regenerateResponse(index + 1);
+              }
+            },
+            child: Text(
+              'Lưu',
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _regenerateResponse(int index) {
+    // Tìm tin nhắn người dùng gần nhất phía trước
+    String userMessage = '';
+    for (int i = index - 1; i >= 0; i--) {
+      if (_messages[i].isUser) {
+        userMessage = _messages[i].text;
+        break;
+      }
+    }
+
+    if (userMessage.isNotEmpty) {
+      // Xóa phản hồi cũ
+      setState(() {
+        _messages.removeAt(index);
+      });
+
+      // Gửi lại tin nhắn để nhận phản hồi mới
+      _sendMessage(userMessage: userMessage);
+    }
   }
 
   @override
@@ -239,6 +430,13 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 ),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.primaryColor,
+                  ),
+                  onPressed: _clearChat,
+                ),
               ],
             ),
           ),
@@ -277,7 +475,7 @@ class _ChatPageState extends State<ChatPage> {
                     padding: const EdgeInsets.all(16),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) =>
-                        _buildMessageWidget(_messages[index]),
+                        _buildMessageWidget(_messages[index], index),
                   ),
           ),
           Container(

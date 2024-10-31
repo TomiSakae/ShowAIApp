@@ -249,13 +249,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Website> websites = [];
+  List<Website> allWebsites = [];
+  List<List<Website>> pages = [];
+  int currentPage = 0;
   bool isLoading = true;
+  static const int itemsPerPage = 8;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     fetchWebsites();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchWebsites() async {
@@ -265,9 +275,23 @@ class _HomePageState extends State<HomePage> {
       if (response.statusCode == 200) {
         final data = json.decode(utf8.decode(response.bodyBytes));
         setState(() {
-          websites = (data['data'] as List)
+          allWebsites = (data['data'] as List)
               .map((item) => Website.fromJson(item))
               .toList();
+
+          // Phân trang
+          pages = [];
+          for (var i = 0; i < allWebsites.length; i += itemsPerPage) {
+            pages.add(
+              allWebsites.sublist(
+                i,
+                i + itemsPerPage > allWebsites.length
+                    ? allWebsites.length
+                    : i + itemsPerPage,
+              ),
+            );
+          }
+
           isLoading = false;
         });
       }
@@ -287,18 +311,55 @@ class _HomePageState extends State<HomePage> {
                 color: AppTheme.primaryColor,
               ),
             )
-          : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: websites.length,
-              itemBuilder: (context, index) {
-                return WebsiteCard(website: websites[index]);
-              },
+          : Column(
+              children: [
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() => currentPage = index);
+                    },
+                    itemCount: pages.length,
+                    itemBuilder: (context, pageIndex) {
+                      return GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.65,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: pages[pageIndex].length,
+                        itemBuilder: (context, index) {
+                          return WebsiteCard(website: pages[pageIndex][index]);
+                        },
+                      );
+                    },
+                  ),
+                ),
+                if (pages.length > 1)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        pages.length,
+                        (index) => Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: currentPage == index
+                                ? AppTheme.primaryColor
+                                : AppTheme.primaryColor.withOpacity(0.2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
     );
   }

@@ -205,9 +205,7 @@ class _RatingWidgetState extends State<RatingWidget> {
                   child: Icon(
                     Icons.star,
                     size: 32,
-                    color: (userRating != null && starRating <= userRating!) ||
-                            (userRating == null &&
-                                starRating <= widget.initialRating)
+                    color: userRating != null && starRating <= userRating!
                         ? Colors.amber
                         : AppTheme.secondaryTextColor.withOpacity(0.3),
                   ),

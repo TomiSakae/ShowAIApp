@@ -4,6 +4,7 @@ import '../screens/website_detail_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class WebsiteCard extends StatefulWidget {
   final Website website;
@@ -65,10 +66,19 @@ class _WebsiteCardState extends State<WebsiteCard> {
             if (widget.website.image != null)
               AspectRatio(
                 aspectRatio: 16 / 9,
-                child: Image.network(
-                  widget.website.image!,
+                child: CachedNetworkImage(
+                  imageUrl: widget.website.image!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
+                  placeholder: (context, url) => Container(
+                    color: AppTheme.cardColor.withOpacity(0.5),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
                     color: AppTheme.cardColor.withOpacity(0.5),
                     child: Icon(
                       Icons.image_not_supported,

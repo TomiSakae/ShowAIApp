@@ -10,6 +10,7 @@ import '../widgets/random_websites.dart';
 import '../widgets/comments_widget.dart';
 import '../models/comment.dart';
 import '../theme/app_theme.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class WebsiteDetailScreen extends StatefulWidget {
   final Website website;
@@ -181,9 +182,25 @@ class _WebsiteDetailScreenState extends State<WebsiteDetailScreen> {
                       children: [
                         Hero(
                           tag: widget.website.id,
-                          child: Image.network(
-                            widget.website.image!,
+                          child: CachedNetworkImage(
+                            imageUrl: widget.website.image!,
                             fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppTheme.cardColor.withOpacity(0.5),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppTheme.cardColor.withOpacity(0.5),
+                              child: Icon(
+                                Icons.image_not_supported,
+                                color: AppTheme.secondaryTextColor,
+                              ),
+                            ),
                           ),
                         ),
                         Container(

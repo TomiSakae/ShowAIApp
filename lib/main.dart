@@ -16,12 +16,41 @@ import 'theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/banner_state.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Thêm hàm xử lý background message
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  print("Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Khởi tạo Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Đăng ký handler cho background messages
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Yêu cầu quyền thông báo
+  await FirebaseMessaging.instance.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+    provisional: false,
+  );
+
+  // Đăng ký cả 2 topics
+  await FirebaseMessaging.instance.subscribeToTopic('new');
+  await FirebaseMessaging.instance.subscribeToTopic('update');
+
+  // Hủy đăng ký topic all
+  await FirebaseMessaging.instance.unsubscribeFromTopic('all');
+
   runApp(const MyApp());
 }
 
@@ -66,6 +95,8 @@ class _MainScreenState extends State<MainScreen> {
   bool _isLoggedIn = false;
   final _apiService = ApiService();
   bool _showBanner = true;
+  bool _hasUpdate = false;
+  String? _updateMessage;
 
   final List<Widget> _screens = [
     const HomePage(),
@@ -82,6 +113,13 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         _isLoggedIn = user != null;
       });
+    });
+    _setupFCM();
+    // Kiểm tra và hiển thị dialog cập nhật khi vào app
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_hasUpdate) {
+        _showUpdateDialog();
+      }
     });
   }
 
@@ -112,6 +150,128 @@ class _MainScreenState extends State<MainScreen> {
         builder: (context) => const SearchPage(),
       ),
     );
+  }
+
+  void _setupFCM() {
+    // Xử lý khi nhận message trong foreground
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        if (message.data['type'] == 'update') {
+          // Xử lý thông báo cập nhật
+          setState(() {
+            _hasUpdate = true;
+            _updateMessage = message.notification!.body;
+          });
+          _showUpdateDialog();
+        } else {
+          // Xử lý thông báo thông thường
+          final notificationBody =
+              '${message.data['name']} - ${message.data['displayName']}';
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.notification!.title ?? 'Thông báo mới',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(notificationBody),
+                ],
+              ),
+              action: SnackBarAction(
+                label: 'Xem',
+                onPressed: () {
+                  // Không làm gì cả vì đã ở trong app
+                },
+              ),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      }
+    });
+
+    // Xử lý khi click vào notification khi app đang chạy background
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (message.data['type'] == 'update') {
+        setState(() {
+          _hasUpdate = true;
+          _updateMessage = message.notification!.body;
+        });
+        _showUpdateDialog();
+      } else {
+        print('Notification clicked - Opening app');
+      }
+    });
+
+    // Lấy FCM token để debug
+    FirebaseMessaging.instance.getToken().then((token) {
+      print('FCM Token: $token');
+    });
+  }
+
+  void _showUpdateDialog() {
+    if (_hasUpdate && context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppTheme.cardColor,
+          title: Text(
+            'Cập nhật mới',
+            style: TextStyle(
+              color: AppTheme.textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            _updateMessage ?? 'Có phiên bản mới của ứng dụng.',
+            style: TextStyle(color: AppTheme.textColor),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Để sau',
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final uri = Uri.parse('https://showai.io.vn');
+                try {
+                  await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Không thể mở trình duyệt',
+                          style: TextStyle(color: AppTheme.textColor),
+                        ),
+                        backgroundColor: AppTheme.cardColor,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text(
+                'Cập nhật ngay',
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override

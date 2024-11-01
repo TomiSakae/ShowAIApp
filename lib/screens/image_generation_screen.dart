@@ -13,18 +13,8 @@ class ImageGenerationScreen extends StatefulWidget {
   _ImageGenerationScreenState createState() => _ImageGenerationScreenState();
 }
 
-// Thêm các hàm validation
-bool validateImageSize(int size) {
-  return size >= 128 && size <= 1024;
-}
-
-bool validatePrompt(String prompt) {
-  return prompt.trim().isNotEmpty;
-}
-
 class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
   final TextEditingController _promptController = TextEditingController();
-  int _selectedSize = 512;
   bool _isLoading = false;
   List<String> _generatedImages = [];
 
@@ -37,27 +27,12 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
   bool _showSettings = false;
 
   Future<void> _generateImage() async {
-    if (!validatePrompt(_promptController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vui lòng nhập prompt'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    if (_promptController.text.trim().isEmpty) return;
 
-    if (!validateImageSize(_selectedSize)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kích thước không hợp lệ'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    setState(() {
+      _isLoading = true;
+    });
 
-    setState(() => _isLoading = true);
     try {
       // Lấy API key - Cập nhật để phù hợp với response format mới
       final keyResponse = await http.get(
@@ -93,17 +68,13 @@ class _ImageGenerationScreenState extends State<ImageGenerationScreen> {
         throw Exception('Lỗi khi tạo ảnh: ${response.statusCode}');
       }
     } catch (e) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Lỗi: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Lỗi: ${e.toString()}')),
       );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 

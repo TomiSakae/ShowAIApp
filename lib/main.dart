@@ -18,7 +18,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/banner_state.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'screens/ranking_page.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Thêm hàm xử lý background message
 @pragma('vm:entry-point')
@@ -57,14 +56,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  final FirebaseAuth? auth;
-  final FirebaseFirestore? firestore;
-
-  const MyApp({
-    super.key,
-    this.auth,
-    this.firestore,
-  });
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +64,7 @@ class MyApp extends StatelessWidget {
       title: 'ShowAI',
       theme: AppTheme.darkTheme,
       home: StreamBuilder<User?>(
-        stream: (auth ?? FirebaseAuth.instance).authStateChanges(),
+        stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(

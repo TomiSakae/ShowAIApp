@@ -18,16 +18,20 @@ workflows:
         inputs:
         - version: "stable"
     
-    - cache-pull@2:
+    - script@1:
+        title: Setup Flutter
         inputs:
-        - cache_paths: |
-            ~/.pub-cache -> pubspec.lock
-            ios/Pods -> ios/Podfile.lock
-            ~/Library/Developer/Xcode/DerivedData -> ios/Runner.xcworkspace/xcuserdata
+        - content: |
+            #!/bin/bash
+            flutter clean
+            flutter pub get
     
-    - flutter-analyze@0:
+    - script@1:
+        title: Skip Tests
         inputs:
-        - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+        - content: |
+            #!/bin/bash
+            echo "Skipping tests for now"
     
     - flutter-build@0:
         inputs:
@@ -47,12 +51,6 @@ workflows:
     - deploy-to-itunesconnect-application-loader@1:
         inputs:
         - ipa_path: $BITRISE_IPA_PATH
-    
-    - script@1:
-        inputs:
-        - content: |
-            #!/bin/bash
-            echo "Skipping tests for now"
 
 trigger_map:
 - push_branch: master

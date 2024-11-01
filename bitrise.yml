@@ -1,0 +1,67 @@
+format_version: "11"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  - BITRISE_FLUTTER_PROJECT_LOCATION: "."
+  - BITRISE_PROJECT_PATH: ios/Runner.xcworkspace
+  - BITRISE_SCHEME: Runner
+  - BITRISE_EXPORT_METHOD: app-store
+
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4: {}
+    - git-clone@6: {}
+    
+    - flutter-installer@0:
+        inputs:
+        - version: "stable"
+    
+    - cache-pull@2:
+        inputs:
+        - cache_paths: |
+            ~/.pub-cache -> pubspec.lock
+            ios/Pods -> ios/Podfile.lock
+            ~/Library/Developer/Xcode/DerivedData -> ios/Runner.xcworkspace/xcuserdata
+    
+    - flutter-analyze@0:
+        inputs:
+        - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+    
+    - flutter-build@0:
+        inputs:
+        - platform: ios
+        - ios_output_type: archive
+        - project_location: $BITRISE_FLUTTER_PROJECT_LOCATION
+        
+    - xcode-archive@4:
+        inputs:
+        - project_path: $BITRISE_PROJECT_PATH
+        - scheme: $BITRISE_SCHEME
+        - export_method: $BITRISE_EXPORT_METHOD
+        - automatic_code_signing: "yes"
+        
+    - deploy-to-bitrise-io@2: {}
+    
+    - deploy-to-itunesconnect-application-loader@1:
+        inputs:
+        - ipa_path: $BITRISE_IPA_PATH
+    
+    - script@1:
+        inputs:
+        - content: |
+            #!/bin/bash
+            flutter analyze
+            flutter test
+
+trigger_map:
+- push_branch: master
+  workflow: primary
+- pull_request_source_branch: "*"
+  workflow: primary
+
+notifications:
+  slack:
+    channel: "#builds"
+    webhook_url: $SLACK_WEBHOOK_URL

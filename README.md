@@ -1,1 +1,1 @@
-App ShowAI
+App ShowAI 1.1.0

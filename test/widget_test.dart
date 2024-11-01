@@ -7,24 +7,74 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:showai/main.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
+
+class MockFirebasePlatform extends FirebasePlatform {
+  final _app = MockFirebaseAppPlatform();
+  final _apps = <FirebaseAppPlatform>[];
+
+  @override
+  bool get isAutomaticDataCollectionEnabled => true;
+
+  @override
+  FirebaseAppPlatform app([String name = '[DEFAULT]']) {
+    return _app;
+  }
+
+  @override
+  List<FirebaseAppPlatform> get apps => _apps;
+
+  @override
+  Future<FirebaseAppPlatform> initializeApp({
+    String? name,
+    FirebaseOptions? options,
+  }) async {
+    _apps.add(_app);
+    return _app;
+  }
+}
+
+class MockFirebaseAppPlatform extends FirebaseAppPlatform {
+  MockFirebaseAppPlatform()
+      : super(
+            '[DEFAULT]',
+            const FirebaseOptions(
+              apiKey: 'mock-api-key',
+              appId: 'mock-app-id',
+              messagingSenderId: 'mock-sender-id',
+              projectId: 'mock-project-id',
+            ));
+
+  @override
+  String get name => '[DEFAULT]';
+
+  @override
+  FirebaseOptions get options => const FirebaseOptions(
+        apiKey: 'mock-api-key',
+        appId: 'mock-app-id',
+        messagingSenderId: 'mock-sender-id',
+        projectId: 'mock-project-id',
+      );
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUpAll(() async {
+    // Setup mock Firebase Platform
+    FirebasePlatform.instance = MockFirebasePlatform();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('ShowAI app smoke test', (WidgetTester tester) async {
+    await tester.pumpWidget(MyApp(
+      auth: MockFirebaseAuth(),
+      firestore: FakeFirebaseFirestore(),
+    ));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

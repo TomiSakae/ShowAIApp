@@ -27,11 +27,11 @@ workflows:
             flutter pub get
     
     - script@1:
-        title: Skip Tests
+        title: Run Flutter Tests
         inputs:
         - content: |
             #!/bin/bash
-            echo "Skipping tests for now"
+            flutter test --coverage
     
     - flutter-build@0:
         inputs:

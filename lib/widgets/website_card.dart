@@ -164,7 +164,6 @@ class _WebsiteCardState extends State<WebsiteCard> {
                       ),
                       const SizedBox(height: 8),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (widget.website.view != null)
                             _buildStatItem(
@@ -172,12 +171,14 @@ class _WebsiteCardState extends State<WebsiteCard> {
                               '${widget.website.view}',
                               AppTheme.secondaryTextColor,
                             ),
+                          const SizedBox(width: 8),
                           if (widget.website.heart != null)
                             _buildStatItem(
                               Icons.favorite,
                               '${widget.website.heart}',
                               Colors.red,
                             ),
+                          const SizedBox(width: 8),
                           if (widget.website.evaluation != null)
                             _buildStatItem(
                               Icons.star,
